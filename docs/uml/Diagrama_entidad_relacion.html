@@ -1,0 +1,176 @@
+<div id="erd"></div>
+
+<style>
+  #erd {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #ffffff;
+    overflow-x: auto;
+  }
+
+  /* --- FORZAR CONTRASTE EN MERMAID ERD --- */
+
+  /* Líneas de las relaciones */
+  #erd svg .relationshipLine {
+    stroke: #2563eb !important; /* Azul intenso */
+    stroke-width: 2px !important;
+  }
+
+  /* Etiqueta de la relación (ej. "tiene", "registra") */
+  #erd svg .relationshipLabelBox {
+    fill: #f1f5f9 !important;
+    stroke: #94a3b8 !important;
+  }
+  #erd svg .relationshipLabel {
+    fill: #0f172a !important;
+    font-weight: 600 !important;
+  }
+
+  /* Contenedores de Entidad */
+  #erd svg .entityBox {
+    fill: #e2e8f0 !important; /* Fondo del encabezado */
+    stroke: #334155 !important; /* Borde oscuro */
+    stroke-width: 2px !important;
+  }
+
+  /* Título de la Entidad (ROL, USUARIO, etc.) */
+  #erd svg .entityLabel {
+    fill: #0f172a !important; /* Texto casi negro */
+    font-weight: 800 !important;
+    font-size: 14px !important;
+  }
+
+  /* Filas de Atributos (Impar / Par) */
+  #erd svg .attributeBoxOdd path,
+  #erd svg .attributeBoxOdd rect {
+    fill: #ffffff !important;
+    stroke: #cbd5e1 !important;
+  }
+
+  #erd svg .attributeBoxEven path,
+  #erd svg .attributeBoxEven rect {
+    fill: #f8fafc !important;
+    stroke: #cbd5e1 !important;
+  }
+
+  /* TEXTO DE ATRIBUTOS (int, id, PK, FK, etc.) */
+  #erd svg text {
+    fill: #0f172a !important; /* Máxima legibilidad */
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-weight: 500 !important;
+  }
+
+  /* Símbolos de Cardinalidad (patas de gallo, círculos) */
+  #erd svg path[id*="zeroorone"],
+  #erd svg path[id*="oneormany"],
+  #erd svg path[id*="many"] {
+    stroke: #2563eb !important;
+    fill: #2563eb !important;
+  }
+</style>
+
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'neutral'
+});
+
+const src = `erDiagram
+  ROL ||--o{ USUARIO : tiene
+  USUARIO ||--o{ VENTA : registra
+  USUARIO ||--o{ MOVIMIENTO_INVENTARIO : ejecuta
+  CATEGORIA ||--o{ PRODUCTO : clasifica
+  PRODUCTO ||--o{ DETALLE_VENTA : incluido_en
+  PRODUCTO ||--o{ MOVIMIENTO_INVENTARIO : afecta
+  CLIENTE ||--o{ VENTA : realiza
+  VENTA ||--o{ DETALLE_VENTA : contiene
+
+  ROL {
+    int id PK
+    string nombre
+    string descripcion
+  }
+  USUARIO {
+    int id PK
+    string nombre
+    string apellido
+    string email
+    string password
+    boolean activo
+    datetime fechaCreacion
+    int rol_id FK
+  }
+  CATEGORIA {
+    int id PK
+    string nombre
+    string descripcion
+    boolean activa
+  }
+  PRODUCTO {
+    int id PK
+    string nombre
+    string descripcion
+    string codigo
+    decimal precioCompra
+    decimal precioVenta
+    int stock
+    int stockMinimo
+    string imagen
+    boolean activo
+    int categoria_id FK
+  }
+  CLIENTE {
+    int id PK
+    string nombre
+    string apellido
+    string telefono
+    string email
+    string direccion
+    datetime fechaRegistro
+    boolean activo
+  }
+  VENTA {
+    int id PK
+    datetime fecha
+    decimal subtotal
+    decimal impuestos
+    decimal descuento
+    decimal total
+    string metodoPago
+    int usuario_id FK
+    int cliente_id FK
+  }
+  DETALLE_VENTA {
+    int id PK
+    int cantidad
+    decimal precioUnitario
+    decimal subtotal
+    int venta_id FK
+    int producto_id FK
+  }
+  MOVIMIENTO_INVENTARIO {
+    int id PK
+    string tipo
+    int cantidad
+    datetime fecha
+    string motivo
+    int producto_id FK
+    int usuario_id FK
+  }
+  CONFIGURACION {
+    int id PK
+    string nombreNegocio
+    string nit
+    string direccion
+    string telefono
+    string logo
+    string moneda
+    decimal impuesto
+  }`;
+
+const { svg } = await mermaid.render('erd-svg', src);
+document.getElementById('erd').innerHTML = svg;
+</script>
