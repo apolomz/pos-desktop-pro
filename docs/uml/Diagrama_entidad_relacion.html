@@ -1,20 +1,83 @@
 <div id="erd"></div>
+
+<style>
+  #erd {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #ffffff;
+    overflow-x: auto;
+  }
+
+  /* --- FORZAR CONTRASTE EN MERMAID ERD --- */
+
+  /* Líneas de las relaciones */
+  #erd svg .relationshipLine {
+    stroke: #2563eb !important; /* Azul intenso */
+    stroke-width: 2px !important;
+  }
+
+  /* Etiqueta de la relación (ej. "tiene", "registra") */
+  #erd svg .relationshipLabelBox {
+    fill: #f1f5f9 !important;
+    stroke: #94a3b8 !important;
+  }
+  #erd svg .relationshipLabel {
+    fill: #0f172a !important;
+    font-weight: 600 !important;
+  }
+
+  /* Contenedores de Entidad */
+  #erd svg .entityBox {
+    fill: #e2e8f0 !important; /* Fondo del encabezado */
+    stroke: #334155 !important; /* Borde oscuro */
+    stroke-width: 2px !important;
+  }
+
+  /* Título de la Entidad (ROL, USUARIO, etc.) */
+  #erd svg .entityLabel {
+    fill: #0f172a !important; /* Texto casi negro */
+    font-weight: 800 !important;
+    font-size: 14px !important;
+  }
+
+  /* Filas de Atributos (Impar / Par) */
+  #erd svg .attributeBoxOdd path,
+  #erd svg .attributeBoxOdd rect {
+    fill: #ffffff !important;
+    stroke: #cbd5e1 !important;
+  }
+
+  #erd svg .attributeBoxEven path,
+  #erd svg .attributeBoxEven rect {
+    fill: #f8fafc !important;
+    stroke: #cbd5e1 !important;
+  }
+
+  /* TEXTO DE ATRIBUTOS (int, id, PK, FK, etc.) */
+  #erd svg text {
+    fill: #0f172a !important; /* Máxima legibilidad */
+    font-family: system-ui, -apple-system, sans-serif !important;
+    font-weight: 500 !important;
+  }
+
+  /* Símbolos de Cardinalidad (patas de gallo, círculos) */
+  #erd svg path[id*="zeroorone"],
+  #erd svg path[id*="oneormany"],
+  #erd svg path[id*="many"] {
+    stroke: #2563eb !important;
+    fill: #2563eb !important;
+  }
+</style>
+
 <script type="module">
 import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
-const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-await document.fonts.ready;
+
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'base',
-  fontFamily: '"Anthropic Sans", sans-serif',
-  themeVariables: {
-    darkMode: dark,
-    fontSize: '13px',
-    fontFamily: '"Anthropic Sans", sans-serif',
-    lineColor: dark ? '#9c9a92' : '#73726c',
-    textColor: dark ? '#c2c0b6' : '#3d3d3a',
-  },
+  theme: 'neutral'
 });
+
 const src = `erDiagram
   ROL ||--o{ USUARIO : tiene
   USUARIO ||--o{ VENTA : registra
@@ -107,29 +170,7 @@ const src = `erDiagram
     string moneda
     decimal impuesto
   }`;
+
 const { svg } = await mermaid.render('erd-svg', src);
 document.getElementById('erd').innerHTML = svg;
-
-document.querySelectorAll('#erd svg.erDiagram .node').forEach(node => {
-  const firstPath = node.querySelector('path[d]');
-  if (!firstPath) return;
-  const d = firstPath.getAttribute('d');
-  const nums = d.match(/-?[\d.]+/g)?.map(Number);
-  if (!nums || nums.length < 8) return;
-  const xs = [nums[0], nums[2], nums[4], nums[6]];
-  const ys = [nums[1], nums[3], nums[5], nums[7]];
-  const x = Math.min(...xs), y = Math.min(...ys);
-  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
-  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  rect.setAttribute('x', x); rect.setAttribute('y', y);
-  rect.setAttribute('width', w); rect.setAttribute('height', h);
-  rect.setAttribute('rx', '8');
-  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
-    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
-  }
-  firstPath.replaceWith(rect);
-});
-document.querySelectorAll('#erd svg.erDiagram .row-rect-odd path, #erd svg.erDiagram .row-rect-even path').forEach(p => {
-  p.setAttribute('stroke', 'none');
-});
 </script>
