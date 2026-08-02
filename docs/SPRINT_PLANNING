@@ -1,0 +1,259 @@
+# Sprint Planning — POS Desktop Pro
+
+Planificación completa del proyecto, organizada en 13 sprints (Sprint 0 a Sprint 12). Stack: Spring Boot + PostgreSQL (backend), React + TypeScript (frontend), Electron (desktop), GitHub Actions (CI/CD).
+
+## Resumen general
+
+| Sprint | Nombre | Foco principal |
+|---|---|---|
+| 0 | Planificación | Documentación y diseño previo al código |
+| 1 | Infraestructura | Base técnica de backend, frontend, desktop y CI |
+| 2 | Seguridad | Autenticación, JWT, roles y usuarios |
+| 3 | Catálogos | Productos y categorías |
+| 4 | Punto de Venta | Flujo de venta (núcleo del negocio) |
+| 5 | Inventario | Movimientos de stock |
+| 6 | Clientes | Gestión y asociación de clientes a ventas |
+| 7 | Reportes y Estadísticas | Analítica del negocio |
+| 8 | Configuración | Personalización y respaldos |
+| 9 | IA | Módulo inteligente opcional |
+| 10 | Calidad | Testing y refactorización |
+| 11 | Desktop Release | Empaquetado e instalador |
+| 12 | Release 1.0 | Cierre y publicación |
+
+---
+
+## Sprint 0 — Planificación
+
+**Objetivo:** dejar el proyecto listo para desarrollar.
+
+**Entregables:**
+- Visión del proyecto.
+- Product Backlog.
+- Sprint Plan.
+- Arquitectura.
+- ERD.
+- UML.
+- Diseño inicial de la API.
+- Estándares de código.
+- Roadmap.
+- README inicial.
+- Configuración del repositorio.
+
+**Resultado:** todo está definido y se puede empezar a programar sin improvisar.
+
+---
+
+## Sprint 1 — Infraestructura
+
+**Objetivo:** tener la base del proyecto funcionando.
+
+### Backend
+- Crear proyecto Spring Boot.
+- Configurar Java 21.
+- Configurar PostgreSQL.
+- Configurar JPA.
+- Configurar Validation.
+- Configurar Lombok.
+- Configurar MapStruct.
+- Configurar Swagger.
+- Manejo global de excepciones.
+
+### Frontend
+- Crear proyecto React.
+- Configurar Vite.
+- Configurar TypeScript.
+- Configurar Tailwind.
+- Configurar React Router.
+- Configurar Axios.
+- Estructura de carpetas.
+
+### Desktop
+- Configurar Electron.
+- Abrir React dentro de Electron.
+
+### DevOps
+- Crear repositorio GitHub.
+- Configurar GitHub Actions (CI).
+- Ejecutar tests automáticamente.
+- Compilar backend en cada push.
+- Compilar frontend en cada push.
+
+**Resultado:** la aplicación abre en Electron, el backend responde, la base de datos conecta y la integración continua funciona.
+
+---
+
+## Sprint 2 — Seguridad
+
+**Objetivo:** el sistema ya permite iniciar sesión.
+
+**Funcionalidades:**
+- CRUD de Roles.
+- CRUD de Usuarios.
+- Login.
+- Logout.
+- JWT.
+- Spring Security.
+- BCrypt.
+- Validaciones.
+- Pantalla de Login.
+- Protección de rutas.
+
+**Resultado:** solo usuarios autenticados pueden usar el sistema.
+
+---
+
+## Sprint 3 — Catálogos
+
+**Objetivo:** administrar productos y categorías.
+
+**Funcionalidades:**
+- CRUD Categorías.
+- CRUD Productos.
+- Subir imagen.
+- Búsqueda.
+- Filtros.
+- Validaciones.
+- Stock mínimo.
+
+**Resultado:** el negocio ya puede registrar su inventario.
+
+---
+
+## Sprint 4 — Punto de Venta
+
+Este es el sprint más importante del proyecto.
+
+**Funcionalidades:**
+- Pantalla principal POS.
+- Buscador instantáneo.
+- Lista de productos.
+- Agregar productos.
+- Modificar cantidades.
+- Eliminar productos.
+- Cálculo automático.
+- Método de pago.
+- Finalizar venta.
+- Cancelar venta.
+
+**Resultado:** ya se puede vender.
+
+> **Meta de demo:** al finalizar este sprint se debe poder hacer una demostración vendiendo un producto real.
+
+---
+
+## Sprint 5 — Inventario
+
+**Funcionalidades:**
+- Entradas.
+- Salidas.
+- Ajustes.
+- Historial.
+- Alertas.
+- Actualización automática después de vender.
+
+**Resultado:** el inventario siempre refleja las ventas.
+
+---
+
+## Sprint 6 — Clientes
+
+**Funcionalidades:**
+- CRUD Clientes.
+- Asociar cliente a venta.
+- Historial.
+- Total gastado.
+
+**Resultado:** el sistema ya guarda la relación con los clientes.
+
+---
+
+## Sprint 7 — Reportes y Estadísticas
+
+**Reportes:**
+- Diario.
+- Semanal.
+- Mensual.
+- Anual.
+- Productos más vendidos.
+- Ganancias.
+- Inventario.
+
+**Estadísticas:**
+- Tarjetas resumen.
+- Gráficas.
+- Indicadores.
+
+**Resultado:** el administrador puede analizar el negocio.
+
+---
+
+## Sprint 8 — Configuración
+
+**Funcionalidades:**
+- Datos del negocio.
+- Logo.
+- Impuestos.
+- Copias de seguridad.
+- Restauración.
+
+**Resultado:** el sistema queda listo para personalizarse.
+
+---
+
+## Sprint 9 — IA
+
+**Funcionalidades:**
+- Chat IA.
+- Resumen de ventas.
+- Productos más vendidos.
+- Recomendaciones.
+- Clientes frecuentes.
+
+**Resultado:** el módulo inteligente funciona sin afectar el modo offline.
+
+---
+
+## Sprint 10 — Calidad
+
+**Testing:**
+- JUnit.
+- Mockito.
+- Cobertura de servicios.
+- Cobertura de controladores.
+
+**Calidad:**
+- Refactorización.
+- Revisión de SOLID.
+- Optimización.
+
+**Resultado:** proyecto estable y mantenible.
+
+---
+
+## Sprint 11 — Desktop Release
+
+**Electron:**
+- Generar `.exe`.
+- Icono.
+- Instalador.
+- Pruebas en Windows limpio.
+
+**Documentación:**
+- README final.
+- Manual de instalación.
+- Capturas.
+- GIFs.
+
+**Resultado:** ya existe una versión instalable.
+
+---
+
+## Sprint 12 — Release 1.0
+
+**Cierre:**
+- Corrección de bugs.
+- Mejoras visuales.
+- Optimización.
+
+
+**Resultado:** POS Desktop Pro 1.0 
