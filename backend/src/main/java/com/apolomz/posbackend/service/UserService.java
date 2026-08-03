@@ -9,6 +9,7 @@ import com.apolomz.posbackend.model.User;
 import com.apolomz.posbackend.repository.RoleRepository;
 import com.apolomz.posbackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper UserMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse create(UserRequest request) {
 
@@ -32,6 +34,9 @@ public class UserService {
 
         User user = UserMapper.toEntity(request);
         user.setRole(role);
+        user.setPassword(
+                passwordEncoder.encode(request.password())
+        );
 
         return UserMapper.toResponse(userRepository.save(user));
     }
@@ -61,7 +66,9 @@ public class UserService {
 
         user.setFullName(request.fullName());
         user.setUsername(request.username());
-        user.setPassword(request.password());
+        user.setPassword(
+                passwordEncoder.encode(request.password())
+        );
         user.setRole(role);
 
         return UserMapper.toResponse(userRepository.save(user));
