@@ -1,32 +1,86 @@
-# React + TypeScript + Vite
+# POS Desktop Pro
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Sistema POS moderno desarrollado con Java, Spring Boot, React y Electron.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+# Objetivo
 
-## React Compiler
+POS Desktop Pro es una aplicación de escritorio diseñada para pequeños y medianos negocios.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Características principales:
 
-## Expanding the Oxlint configuration
+- Funcionamiento completamente offline
+- Arquitectura cliente-servidor local
+- Aplicación de escritorio (.exe)
+- Base de datos PostgreSQL
+- IA opcional mediante OpenAI
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+---
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+# Tecnologías
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Backend
+
+- Java 21
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- PostgreSQL
+- Flyway
+- Validation
+- Lombok
+- MapStruct
+- Swagger
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- TailwindCSS
+- React Router
+- Axios
+- Lucide React
+
+## Desktop
+
+- Electron
+
+## DevOps
+
+- Git
+- GitHub
+- GitHub Actions
+
+---
+
+# Arquitectura
+
+Electron
+
+↓
+
+React
+
+↓
+
+Spring Boot
+
+↓
+
+PostgreSQL
+
+---
+
+# Estructura del proyecto
+
+```text
+posSYSTEM/
+├── backend/
+├── frontend/
+├── desktop/
+├── database/
+├── docs/
+├── screenshots/
+└── README.md

@@ -1,41 +1,36 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Login } from './components/Login';
-import './App.css';
+import { Layout } from './components/Layout';
+import { CategoryManager } from './components/CategoryManager';
+import { ProductManager } from './components/ProductManager';
 
-function App() {
-  const [token, setToken] = useState<string | null>(null);
-
-  // Al cargar la app, revisamos si ya había una sesión guardada
-  useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      setToken(savedToken);
-    }
-  }, []);
+export const App: React.FC = () => {
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [activeTab, setActiveTab] = useState<'pos' | 'products' | 'categories'>('products');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken(null);
   };
 
-  // Si no hay token, mostramos la pantalla de Login
   if (!token) {
-    return <Login onLoginSuccess={(newToken) => setToken(newToken)} />;
+    return <Login onLoginSuccess={(t) => setToken(t)} />;
   }
 
-  // Si hay token, mostramos el sistema protegido
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>POS Desktop Pro — Dashboard</h1>
-        <button onClick={handleLogout} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>
-          Cerrar Sesión
-        </button>
-      </header>
-      <hr />
-      <p>¡Bienvenido al sistema! Tu backend respondió y estás autenticado con JWT.</p>
-    </div>
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout}>
+      {activeTab === 'pos' && (
+        <div className="p-8 text-center text-slate-400">
+          <h2 className="text-xl font-bold text-white mb-2">Módulo de Punto de Venta (Caja)</h2>
+          <p className="text-sm">Próximamente en el Sprint 4 🛒</p>
+        </div>
+      )}
+
+      {activeTab === 'products' && <ProductManager />}
+
+      {activeTab === 'categories' && <CategoryManager />}
+    </Layout>
   );
-}
+};
 
 export default App;
