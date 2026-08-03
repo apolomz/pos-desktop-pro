@@ -1,6 +1,7 @@
 package com.apolomz.posbackend.controller;
 
 import com.apolomz.posbackend.dto.request.LoginRequest;
+import com.apolomz.posbackend.dto.request.RegisterRequest;
 import com.apolomz.posbackend.dto.response.LoginResponse;
 import com.apolomz.posbackend.service.AuthService;
 import jakarta.validation.Valid;
@@ -19,7 +20,12 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request){
 
         return authService.login(request);
-
     }
 
+    @PostMapping("/register")
+    public LoginResponse register(
+            @Valid @RequestBody RegisterRequest request){
+
+        return authService.register(request);
+    }
 }
