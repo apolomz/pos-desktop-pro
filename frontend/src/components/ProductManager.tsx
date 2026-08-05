@@ -194,7 +194,9 @@ export const ProductManager: React.FC = () => {
                           {prod.stock}
                         </span>
                         {isLowStock && (
-                          <AlertTriangle className="w-4 h-4 text-amber-400" title="Stock bajo el mínimo" />
+                          <span title="Stock bajo el mínimo">
+                            <AlertTriangle className="w-4 h-4 text-amber-400" />
+                        </span>
                         )}
                       </div>
                     </td>
