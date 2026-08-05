@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Search, Edit2, Trash2, Package, Power, AlertTriangle, Loader2 } from 'lucide-react';
 import type { Product, ProductRequest } from '../types/Product';
 import type { Category } from '../types/category';
-import { productService } from '../api/productService';
-import { categoryService } from '../api/categoryService';
+import { productService } from '../services/productService';
+import { categoryService } from '../services/categoryService';
 
 export const ProductManager: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);

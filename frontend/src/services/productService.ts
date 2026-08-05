@@ -1,4 +1,4 @@
-import api from './axios';
+import api from '../api/axios';
 import type { Product, ProductRequest } from '../types/Product';
 
 export const productService = {

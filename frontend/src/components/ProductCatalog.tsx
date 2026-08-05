@@ -22,22 +22,24 @@ export const ProductCatalog: React.FC<Props> = ({ products, categories, onSelect
   });
 
   return (
-    <div className="flex flex-col h-full gap-4 p-4 bg-gray-50 rounded-lg">
-      {/* HU-005: Buscador rápido */}
+    <div className="flex flex-col h-full gap-4 p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+      {/* Buscador */}
       <input
         type="text"
-        placeholder="Buscar por nombre o descripción..."
+        placeholder="Buscar producto por nombre o descripción..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
 
-      {/* HU-016: Filtro por categorías */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      {/* Categorías */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => setSelectedCategory('ALL')}
-          className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${
-            selectedCategory === 'ALL' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+          className={`px-4 py-1.5 text-xs font-medium rounded-lg transition whitespace-nowrap ${
+            selectedCategory === 'ALL' 
+              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' 
+              : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
           }`}
         >
           Todos
@@ -46,8 +48,10 @@ export const ProductCatalog: React.FC<Props> = ({ products, categories, onSelect
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${
-              selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition whitespace-nowrap ${
+              selectedCategory === cat 
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' 
+                : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'
             }`}
           >
             {cat}
@@ -55,24 +59,24 @@ export const ProductCatalog: React.FC<Props> = ({ products, categories, onSelect
         ))}
       </div>
 
-      {/* HU-006 & HU-015: Rejilla de productos e imagen */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[calc(100vh-220px)]">
+      {/* Rejilla de productos */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[calc(100vh-230px)] pr-1">
         {filteredProducts.map((product) => (
           <div
             key={product.id}
             onClick={() => onSelectProduct(product)}
-            className="flex flex-col border rounded-xl p-3 bg-white shadow-sm cursor-pointer hover:shadow-md hover:border-blue-400 transition"
+            className="flex flex-col border border-slate-800 rounded-xl p-3 bg-slate-800/80 hover:bg-slate-800 hover:border-indigo-500/60 transition cursor-pointer group shadow-md"
           >
-            <div className="w-full h-24 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+            <div className="w-full h-28 bg-slate-950 rounded-lg mb-3 flex items-center justify-center overflow-hidden border border-slate-800">
               {product.imageUrl ? (
-                <img src={product.imageUrl} alt={product.name} className="h-full object-cover" />
+                <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover group-hover:scale-105 transition" />
               ) : (
-                <span className="text-gray-400 text-xs">Sin imagen</span>
+                <span className="text-slate-500 text-xs">Sin imagen</span>
               )}
             </div>
-            <h4 className="font-semibold text-sm line-clamp-1">{product.name}</h4>
-            <p className="text-xs text-gray-500">Stock: {product.stock}</p>
-            <span className="text-blue-600 font-bold mt-auto pt-2">${product.price.toLocaleString()}</span>
+            <h4 className="font-semibold text-sm text-slate-100 line-clamp-1">{product.name}</h4>
+            <p className="text-xs text-slate-400 mt-0.5">Stock: {product.stock}</p>
+            <span className="text-indigo-400 font-extrabold text-base mt-2">${product.price.toLocaleString()}</span>
           </div>
         ))}
       </div>
