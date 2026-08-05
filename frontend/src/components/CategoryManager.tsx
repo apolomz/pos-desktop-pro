@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Tags, Loader2 } from 'lucide-react';
 import type{ Category, CategoryRequest } from '../types/category';
-import { categoryService } from '../api/categoryService';
+import { categoryService } from '../services/categoryService';
 
 export const CategoryManager: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);

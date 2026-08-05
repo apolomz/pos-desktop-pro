@@ -1,5 +1,4 @@
-import api from './axios';
-// Ojo a la palabra 'type' aquí:
+import api from '../api/axios';
 import type { Category, CategoryRequest } from '../types/category';
 
 export const categoryService = {
