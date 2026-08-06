@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,6 +26,7 @@ public class SaleService {
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final InventoryService inventoryService; // Inyección añadida
 
     @Transactional
     public SaleResponseDTO createSale(SaleRequestDTO requestDTO, String sellerUsername) {
@@ -55,7 +55,7 @@ public class SaleService {
                         ". Stock actual: " + product.getStock() + ", requerido: " + itemDTO.getQuantity());
             }
 
-            // Descuento automático de stock (Atómico)
+            // Descuento automático de stock
             product.setStock(product.getStock() - itemDTO.getQuantity());
             productRepository.save(product);
 
@@ -76,7 +76,17 @@ public class SaleService {
         sale.setTax(BigDecimal.ZERO);
         sale.setTotal(totalSale);
 
+        // 1. Guardar la venta para generar el ID definitivo
         Sale savedSale = saleRepository.save(sale);
+
+        // 2. Registrar el movimiento en el historial de inventario por cada ítem vendido
+        for (SaleDetail detail : savedSale.getDetails()) {
+            inventoryService.registerSaleMovement(
+                    detail.getProduct(),
+                    detail.getQuantity(),
+                    "Venta #" + savedSale.getId()
+            );
+        }
 
         return mapToResponseDTO(savedSale);
     }
