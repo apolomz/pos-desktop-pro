@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { inventoryService } from '../services/inventoryService';
-import { productService } from '../services/productService'; // Asumiendo tu servicio de productos
+import { productService } from '../services/productService';
 import type { InventoryMovementResponse, LowStockProduct, MovementType } from '../types/inventory';
+import type { Product } from '../types/Product';
 
 export const InventoryManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'history' | 'alerts'>('history');
+  const [activeTab, setActiveTab] = useState<'stock' | 'history' | 'alerts'>('stock');
   const [movements, setMovements] = useState<InventoryMovementResponse[]>([]);
   const [alerts, setAlerts] = useState<LowStockProduct[]>([]);
-  const [products, setProducts] = useState<{ id: number; name: string; stock: number }[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Estado del Modal
@@ -40,6 +41,11 @@ export const InventoryManager: React.FC = () => {
     fetchData();
   }, []);
 
+  const openMovementForProduct = (productId: number) => {
+    setSelectedProductId(productId);
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProductId) return;
@@ -53,12 +59,10 @@ export const InventoryManager: React.FC = () => {
         reason
       });
       setIsModalOpen(false);
-      // Limpiar Formulario
       setSelectedProductId('');
       setQuantity(1);
       setReason('');
       setMovementType('ENTRY');
-      // Recargar datos
       await fetchData();
     } catch (err) {
       alert('Error al registrar el movimiento.');
@@ -69,28 +73,18 @@ export const InventoryManager: React.FC = () => {
 
   const getBadgeStyle = (type: MovementType) => {
     switch (type) {
-      case 'ENTRY':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'RETURN':
-        return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
-      case 'EXIT':
-        return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-      case 'SALE':
-        return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-      case 'ADJUSTMENT':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      default:
-        return 'bg-slate-700 text-slate-300';
+      case 'ENTRY': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'RETURN': return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
+      case 'EXIT': return 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+      case 'SALE': return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+      case 'ADJUSTMENT': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      default: return 'bg-slate-700 text-slate-300';
     }
   };
 
   const getTypeLabel = (type: MovementType) => {
     const labels: Record<MovementType, string> = {
-      ENTRY: 'Entrada',
-      EXIT: 'Salida',
-      ADJUSTMENT: 'Ajuste',
-      SALE: 'Venta',
-      RETURN: 'Devolución'
+      ENTRY: 'Entrada', EXIT: 'Salida', ADJUSTMENT: 'Ajuste', SALE: 'Venta', RETURN: 'Devolución'
     };
     return labels[type] || type;
   };
@@ -101,7 +95,7 @@ export const InventoryManager: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Gestión de Inventario</h1>
-          <p className="text-slate-400 text-sm">Control de movimientos, ajustes e historial atómico</p>
+          <p className="text-slate-400 text-sm">Control de existencias actuales, movimientos e historial atómico</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -111,8 +105,16 @@ export const InventoryManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Tabs & Alert Badge */}
+      {/* Navegación por Pestañas */}
       <div className="flex items-center gap-4 border-b border-slate-800 pb-2">
+        <button
+          onClick={() => setActiveTab('stock')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            activeTab === 'stock' ? 'bg-slate-800 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Stock Actual ({products.length})
+        </button>
         <button
           onClick={() => setActiveTab('history')}
           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
@@ -136,10 +138,70 @@ export const InventoryManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Main Content */}
+      {/* Contenido Principal */}
       {loading ? (
-        <div className="text-center py-12 text-slate-400">Cargando datos de inventario...</div>
+        <div className="text-center py-12 text-slate-400">Cargando inventario...</div>
+      ) : activeTab === 'stock' ? (
+        /* Vista: Stock Actual */
+        <div className="bg-slate-800/50 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="bg-slate-800/80 text-slate-400 uppercase text-xs">
+                <tr>
+                  <th className="px-6 py-3">Producto</th>
+                  <th className="px-6 py-3">Categoría</th>
+                  <th className="px-6 py-3 text-right">Precio Unit.</th>
+                  <th className="px-6 py-3 text-right">Stock Actual</th>
+                  <th className="px-6 py-3 text-right">Stock Mínimo</th>
+                  <th className="px-6 py-3 text-center">Estado</th>
+                  <th className="px-6 py-3 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {products.map((p) => {
+                  const isLow = p.stock <= p.minStock;
+                  const isOut = p.stock === 0;
+                  return (
+                    <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="px-6 py-4 font-medium text-white">{p.name}</td>
+                      <td className="px-6 py-4 text-slate-400">{p.category?.name || 'Sin Categoría'}</td>
+                      <td className="px-6 py-4 text-right font-mono">${p.price.toLocaleString('es-CO')}</td>
+                      <td className={`px-6 py-4 text-right font-mono font-bold ${isOut ? 'text-rose-500' : isLow ? 'text-amber-400' : 'text-emerald-400'}`}>
+                        {p.stock}
+                      </td>
+                      <td className="px-6 py-4 text-right font-mono text-slate-400">{p.minStock}</td>
+                      <td className="px-6 py-4 text-center">
+                        {isOut ? (
+                          <span className="px-2.5 py-1 text-xs rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">
+                            Agotado
+                          </span>
+                        ) : isLow ? (
+                          <span className="px-2.5 py-1 text-xs rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+                            Stock Bajo
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 text-xs rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                            Suficiente
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => openMovementForProduct(p.id)}
+                          className="px-3 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-indigo-300 font-medium rounded-md transition-colors"
+                        >
+                          Ajustar / Mover
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : activeTab === 'history' ? (
+        /* Vista: Historial */
         <div className="bg-slate-800/50 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
@@ -157,16 +219,12 @@ export const InventoryManager: React.FC = () => {
               <tbody className="divide-y divide-slate-800">
                 {movements.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-500">
-                      No hay movimientos registrados.
-                    </td>
+                    <td colSpan={7} className="text-center py-8 text-slate-500">No hay movimientos registrados.</td>
                   </tr>
                 ) : (
                   movements.map((m) => (
                     <tr key={m.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-6 py-4 text-xs text-slate-400">
-                        {new Date(m.createdAt).toLocaleString('es-CO')}
-                      </td>
+                      <td className="px-6 py-4 text-xs text-slate-400">{new Date(m.createdAt).toLocaleString('es-CO')}</td>
                       <td className="px-6 py-4 font-medium text-white">{m.productName}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 text-xs rounded-full border ${getBadgeStyle(m.type)}`}>
@@ -185,7 +243,7 @@ export const InventoryManager: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Tabla Alertas */
+        /* Vista: Alertas */
         <div className="bg-slate-800/50 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
@@ -194,7 +252,7 @@ export const InventoryManager: React.FC = () => {
                   <th className="px-6 py-3">Producto</th>
                   <th className="px-6 py-3 text-right">Stock Actual</th>
                   <th className="px-6 py-3 text-right">Stock Mínimo</th>
-                  <th className="px-6 py-3 text-center">Estado</th>
+                  <th className="px-6 py-3 text-center">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -211,9 +269,12 @@ export const InventoryManager: React.FC = () => {
                       <td className="px-6 py-4 text-right font-mono text-rose-400 font-bold">{a.stock}</td>
                       <td className="px-6 py-4 text-right font-mono text-slate-400">{a.minStock}</td>
                       <td className="px-6 py-4 text-center">
-                        <span className="px-2.5 py-1 text-xs rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold">
-                          Reabastecer Urgentemente
-                        </span>
+                        <button
+                          onClick={() => openMovementForProduct(a.id)}
+                          className="px-3 py-1 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 font-semibold rounded-md transition-colors"
+                        >
+                          Reabastecer
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -224,7 +285,7 @@ export const InventoryManager: React.FC = () => {
         </div>
       )}
 
-      {/* Modal para Registrar Movimiento */}
+      {/* Modal Registrar Movimiento */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
@@ -245,7 +306,7 @@ export const InventoryManager: React.FC = () => {
                   <option value="">Selecciona un producto</option>
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} (Stock: {p.stock})
+                      {p.name} (Stock actual: {p.stock})
                     </option>
                   ))}
                 </select>
@@ -283,7 +344,7 @@ export const InventoryManager: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Motivo / Notas</label>
                 <input
                   type="text"
-                  placeholder="Ej: Factura proveedor #123, merma por daño..."
+                  placeholder="Ej: Reabastecimiento, producto vencido..."
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-indigo-500 outline-none"

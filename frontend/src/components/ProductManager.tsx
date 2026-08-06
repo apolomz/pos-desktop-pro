@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Package, Power, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Power, AlertTriangle, Loader2, Info } from 'lucide-react';
 import type { Product, ProductRequest } from '../types/Product';
 import type { Category } from '../types/category';
 import { productService } from '../services/productService';
@@ -17,7 +17,7 @@ export const ProductManager: React.FC = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState<number | ''>('');
-  const [stock, setStock] = useState<number | ''>('');
+  const [stock, setStock] = useState<number>(0); // Inicializa siempre en 0
   const [minStock, setMinStock] = useState<number | ''>(5);
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [imageUrl, setImageUrl] = useState('');
@@ -40,7 +40,7 @@ export const ProductManager: React.FC = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchData(), 300); // Debounce para búsqueda
+    const timer = setTimeout(() => fetchData(), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -50,7 +50,7 @@ export const ProductManager: React.FC = () => {
       setName(product.name);
       setDescription(product.description || '');
       setPrice(product.price);
-      setStock(product.stock);
+      setStock(product.stock); // Muestra el stock actual pero bloqueado
       setMinStock(product.minStock);
       setCategoryId(product.category.id);
       setImageUrl(product.imageUrl || '');
@@ -59,7 +59,7 @@ export const ProductManager: React.FC = () => {
       setName('');
       setDescription('');
       setPrice('');
-      setStock('');
+      setStock(0); // Forzado a 0 al crear un nuevo producto
       setMinStock(5);
       setCategoryId(categories[0]?.id || '');
       setImageUrl('');
@@ -69,14 +69,14 @@ export const ProductManager: React.FC = () => {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!categoryId || price === '' || stock === '' || minStock === '') return;
+    if (!categoryId || price === '' || minStock === '') return;
 
     setSaving(true);
     const req: ProductRequest = {
       name,
       description,
       price: Number(price),
-      stock: Number(stock),
+      stock: editingProduct ? editingProduct.stock : 0, // Garantiza 0 al crear
       minStock: Number(minStock),
       categoryId: Number(categoryId),
       imageUrl
@@ -126,7 +126,7 @@ export const ProductManager: React.FC = () => {
             <Package className="w-6 h-6 text-indigo-400" />
             <span>Catálogo de Productos</span>
           </h2>
-          <p className="text-slate-400 text-xs">Administra tu inventario y precios de venta</p>
+          <p className="text-slate-400 text-xs">Administra la ficha técnica y precios de venta</p>
         </div>
         <button
           onClick={() => handleOpenModal()}
@@ -137,7 +137,7 @@ export const ProductManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Buscador (HU-028) */}
+      {/* Buscador */}
       <div className="relative">
         <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-500" />
         <input
@@ -196,7 +196,7 @@ export const ProductManager: React.FC = () => {
                         {isLowStock && (
                           <span title="Stock bajo el mínimo">
                             <AlertTriangle className="w-4 h-4 text-amber-400" />
-                        </span>
+                          </span>
                         )}
                       </div>
                     </td>
@@ -236,7 +236,7 @@ export const ProductManager: React.FC = () => {
         )}
       </div>
 
-      {/* Modal Crear/Editar (HU-025, HU-026) */}
+      {/* Modal Crear/Editar */}
       {modalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-6 space-y-4 shadow-2xl">
@@ -288,15 +288,14 @@ export const ProductManager: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Stock Inicial</label>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                    {editingProduct ? 'Stock Actual' : 'Stock Inicial'}
+                  </label>
                   <input
                     type="number"
-                    required
-                    min="0"
+                    disabled
                     value={stock}
-                    onChange={(e) => setStock(e.target.value === '' ? '' : Number(e.target.value))}
-                    placeholder="50"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                    className="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl text-slate-500 text-sm font-mono cursor-not-allowed outline-none"
                   />
                 </div>
                 <div>
@@ -311,6 +310,13 @@ export const ProductManager: React.FC = () => {
                     className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                   />
                 </div>
+              </div>
+
+              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-start gap-2.5 text-xs text-indigo-300">
+                <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-400" />
+                <span>
+                  El stock inicial será <strong>0</strong>. Registra una <strong>Entrada</strong> en la pestaña de <strong>Inventario</strong> para agregar existencias.
+                </span>
               </div>
 
               <div className="flex gap-3 pt-2">
