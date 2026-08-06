@@ -1,9 +1,9 @@
 import React from 'react';
-import { ShoppingCart, Package, Tags, LogOut, Store } from 'lucide-react';
+import { ShoppingCart, Package, Tags, LogOut, Store, Boxes } from 'lucide-react';
 
 interface LayoutProps {
-  activeTab: 'pos' | 'products' | 'categories';
-  setActiveTab: (tab: 'pos' | 'products' | 'categories') => void;
+  activeTab: 'pos' | 'products' | 'categories' | 'inventory';
+  setActiveTab: (tab: 'pos' | 'products' | 'categories' | 'inventory') => void;
   onLogout: () => void;
   children: React.ReactNode;
 }
@@ -61,6 +61,18 @@ export const Layout: React.FC<LayoutProps> = ({ activeTab, setActiveTab, onLogou
             >
               <Tags className="w-4 h-4" />
               <span>Categorías</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === 'inventory'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                  : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+              }`}
+            >
+              <Boxes className="w-4 h-4" />
+              <span>Inventario</span>
             </button>
           </nav>
         </div>

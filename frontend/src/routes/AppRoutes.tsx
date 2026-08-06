@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { ProtectedRoute } from './ProtectedRoute';
-import { Layout } from '../components/Layout';
+import { Layout } from '../layouts/Layout';
 import { Login } from '../components/Login';
 import { PosScreen } from '../pages/PosScreen';
 import { ProductManager } from '../components/ProductManager';
 import { CategoryManager } from '../components/CategoryManager';
+import { InventoryManager } from '../components/InventoryManager';
 
-// Wrapper que adapta la URL al componente Layout existente
+type TabType = 'pos' | 'products' | 'categories' | 'inventory';
+
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Mapea la ruta actual ('/pos', '/products', '/categories') a la tab activa
-  const getActiveTab = (): 'pos' | 'products' | 'categories' => {
+  const getActiveTab = (): TabType => {
     if (location.pathname.startsWith('/products')) return 'products';
     if (location.pathname.startsWith('/categories')) return 'categories';
+    if (location.pathname.startsWith('/inventory')) return 'inventory';
     return 'pos';
   };
 
-  const handleTabChange = (tab: 'pos' | 'products' | 'categories') => {
+  const handleTabChange = (tab: TabType) => {
     navigate(`/${tab}`);
   };
 
@@ -71,6 +73,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/pos" element={<PosScreen />} />
           <Route path="/products" element={<ProductManager />} />
           <Route path="/categories" element={<CategoryManager />} />
+          <Route path="/inventory" element={<InventoryManager />} />
         </Route>
       </Route>
 
