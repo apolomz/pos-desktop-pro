@@ -16,6 +16,9 @@ export const ProductManager: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
+  const userRole = (localStorage.getItem('role') || '').toUpperCase();
+  const isCashier = userRole.includes('CASHIER');
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -148,13 +151,15 @@ export const ProductManager: React.FC = () => {
           </h2>
           <p className="text-slate-400 text-xs">Administra la ficha técnica, precios e imágenes de venta</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nuevo Producto</span>
-        </button>
+        {!isCashier && (
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nuevo Producto</span>
+          </button>
+        )}
       </div>
 
       {/* Barra de Filtros Avanzados */}
@@ -226,7 +231,7 @@ export const ProductManager: React.FC = () => {
                 <th className="py-3.5 px-6">Precio</th>
                 <th className="py-3.5 px-6">Stock</th>
                 <th className="py-3.5 px-6">Estado</th>
-                <th className="py-3.5 px-6 text-right">Acciones</th>
+                {!isCashier && <th className="py-3.5 px-6 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -276,27 +281,29 @@ export const ProductManager: React.FC = () => {
                         {prod.isActive ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right space-x-1">
-                      <button
-                        onClick={() => handleToggleStatus(prod.id)}
-                        title={prod.isActive ? "Desactivar" : "Activar"}
-                        className="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-amber-500/10 transition-all cursor-pointer"
-                      >
-                        <Power className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenModal(prod)}
-                        className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all cursor-pointer"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(prod.id)}
-                        className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                    {!isCashier && (
+                      <td className="py-4 px-6 text-right space-x-1">
+                        <button
+                          onClick={() => handleToggleStatus(prod.id)}
+                          title={prod.isActive ? "Desactivar" : "Activar"}
+                          className="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-amber-500/10 transition-all cursor-pointer"
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenModal(prod)}
+                          className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all cursor-pointer"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(prod.id)}
+                          className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

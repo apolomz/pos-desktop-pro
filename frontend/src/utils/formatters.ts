@@ -1,4 +1,4 @@
-export const formatExpenseCategory = (category?: string): String => {
+export const formatExpenseCategory = (category?: string): string => {
   if (!category) return 'Otro Egreso';
   switch (category.toUpperCase()) {
     case 'PAYROLL':
@@ -12,7 +12,7 @@ export const formatExpenseCategory = (category?: string): String => {
   }
 };
 
-export const formatRole = (role?: string): String => {
+export const formatRole = (role?: string): string => {
   if (!role) return 'Usuario';
   const cleanRole = role.toUpperCase().replace('ROLE_', '');
   switch (cleanRole) {
@@ -25,7 +25,7 @@ export const formatRole = (role?: string): String => {
   }
 };
 
-export const formatShiftStatus = (status?: string): String => {
+export const formatShiftStatus = (status?: string): string => {
   if (!status) return 'Desconocido';
   switch (status.toUpperCase()) {
     case 'OPEN':
@@ -37,7 +37,7 @@ export const formatShiftStatus = (status?: string): String => {
   }
 };
 
-export const formatPaymentMethod = (method?: string): String => {
+export const formatPaymentMethod = (method?: string): string => {
   if (!method) return 'Efectivo';
   switch (method.toUpperCase()) {
     case 'CASH':
@@ -51,7 +51,27 @@ export const formatPaymentMethod = (method?: string): String => {
   }
 };
 
-export const formatCurrency = (amount?: number | null): String => {
+export const formatMovementType = (type?: string): string => {
+  if (!type) return 'Movimiento';
+  switch (type.toUpperCase()) {
+    case 'SALE':
+    case 'OUT':
+      return 'Venta (Salida)';
+    case 'ENTRY':
+    case 'IN':
+      return 'Entrada de Inventario';
+    case 'ADJUSTMENT':
+      return 'Ajuste Manual';
+    case 'PURCHASE':
+      return 'Compra / Recepción';
+    case 'RETURN':
+      return 'Devolución';
+    default:
+      return type;
+  }
+};
+
+export const formatCurrency = (amount?: number | null): string => {
   if (amount == null || isNaN(amount)) return '$0';
   return `$${Math.round(amount).toLocaleString('es-CO')}`;
 };

@@ -28,7 +28,12 @@ import { backupService } from '../services/backupService';
 import { formatExpenseCategory, formatRole, formatShiftStatus, formatCurrency } from '../utils/formatters';
 
 export const SettingsDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'shifts' | 'expenses' | 'backup'>('business');
+  const userRole = (localStorage.getItem('role') || '').toUpperCase();
+  const isCashier = userRole.includes('CASHIER');
+
+  const [activeTab, setActiveTab] = useState<'business' | 'users' | 'shifts' | 'expenses' | 'backup'>(
+    isCashier ? 'shifts' : 'business'
+  );
   
   // States: Business Config
   const [config, setConfig] = useState<BusinessConfig>({
@@ -282,29 +287,31 @@ export const SettingsDashboard: React.FC = () => {
       {/* Navegación por Pestañas (Tabs) */}
       <div className="flex flex-wrap items-center gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
         {[
-          { id: 'business', label: 'Negocio e Impuestos', icon: Store },
-          { id: 'users', label: 'Usuarios y Cajeros', icon: Users },
-          { id: 'shifts', label: 'Turnos de Caja', icon: DollarSign },
-          { id: 'expenses', label: 'Nómina y Egresos', icon: Receipt },
-          { id: 'backup', label: 'Copias de Seguridad', icon: Database },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                isActive
-                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+          { id: 'business', label: 'Negocio e Impuestos', icon: Store, adminOnly: true },
+          { id: 'users', label: 'Usuarios y Cajeros', icon: Users, adminOnly: true },
+          { id: 'shifts', label: 'Turnos de Caja', icon: DollarSign, adminOnly: false },
+          { id: 'expenses', label: 'Nómina y Egresos', icon: Receipt, adminOnly: false },
+          { id: 'backup', label: 'Copias de Seguridad', icon: Database, adminOnly: true },
+        ]
+          .filter((tab) => !isCashier || !tab.adminOnly)
+          .map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
       </div>
 
       {/* PESTAÑA 1: Negocio e Impuestos */}

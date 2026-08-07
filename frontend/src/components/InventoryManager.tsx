@@ -5,7 +5,7 @@ import { saleService } from '../services/saleService';
 import type { InventoryMovementResponse, LowStockProduct, MovementType } from '../types/inventory';
 import type { Product } from '../types/Product';
 import { InvoiceDetailModal, type SaleInvoiceData } from './InvoiceDetailModal';
-import { formatCurrency, formatPaymentMethod } from '../utils/formatters';
+import { formatCurrency, formatPaymentMethod, formatMovementType } from '../utils/formatters';
 import { Search, Calendar, Filter, FileText, Plus, AlertTriangle, Loader2 } from 'lucide-react';
 
 export const InventoryManager: React.FC = () => {
@@ -15,6 +15,9 @@ export const InventoryManager: React.FC = () => {
   const [alerts, setAlerts] = useState<LowStockProduct[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const userRole = (localStorage.getItem('role') || '').toUpperCase();
+  const isCashier = userRole.includes('CASHIER');
 
   // Filtros Avanzados
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -138,13 +141,15 @@ export const InventoryManager: React.FC = () => {
           <h1 className="text-2xl font-bold text-white">Inventario y Facturación</h1>
           <p className="text-slate-400 text-sm">Control de existencias, trazabilidad por factura y movimientos de stock</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Registrar Movimiento Manual</span>
-        </button>
+        {!isCashier && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Registrar Movimiento Manual</span>
+          </button>
+        )}
       </div>
 
       {/* Barra de Filtros Avanzados */}
@@ -262,7 +267,7 @@ export const InventoryManager: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Stock Actual</th>
                 <th className="px-6 py-3.5 text-right">Stock Mínimo</th>
                 <th className="px-6 py-3.5 text-center">Estado</th>
-                <th className="px-6 py-3.5 text-center">Acción</th>
+                {!isCashier && <th className="px-6 py-3.5 text-center">Acción</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800">
@@ -285,14 +290,16 @@ export const InventoryManager: React.FC = () => {
                         {isOut ? 'Agotado' : isLow ? 'Stock Bajo' : 'Suficiente'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => openMovementForProduct(p.id)}
-                        className="px-3 py-1.5 text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl font-medium transition-all cursor-pointer"
-                      >
-                        Ajustar / Mover
-                      </button>
-                    </td>
+                    {!isCashier && (
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => openMovementForProduct(p.id)}
+                          className="px-3 py-1.5 text-xs bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 rounded-xl font-medium transition-all cursor-pointer"
+                        >
+                          Ajustar / Mover
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -383,8 +390,8 @@ export const InventoryManager: React.FC = () => {
                   <td className="px-4 py-3.5 text-xs text-slate-400">{new Date(m.createdAt).toLocaleString('es-CO')}</td>
                   <td className="px-4 py-3.5 font-semibold text-white">{m.productName}</td>
                   <td className="px-4 py-3.5">
-                    <span className="px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-200 rounded text-xs font-semibold">
-                      {m.type}
+                    <span className="px-2 py-0.5 bg-slate-800 border border-slate-700 text-indigo-300 rounded text-xs font-semibold">
+                      {formatMovementType(m.type)}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 text-right font-mono font-bold text-white">{m.quantity}</td>
@@ -411,7 +418,7 @@ export const InventoryManager: React.FC = () => {
                   <th className="px-4 py-3">Producto</th>
                   <th className="px-4 py-3 text-right">Stock Actual</th>
                   <th className="px-4 py-3 text-right">Stock Mínimo</th>
-                  <th className="px-4 py-3 text-center">Acción</th>
+                  {!isCashier && <th className="px-4 py-3 text-center">Acción</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -420,14 +427,16 @@ export const InventoryManager: React.FC = () => {
                     <td className="px-4 py-3.5 font-medium text-white">{a.name}</td>
                     <td className="px-4 py-3.5 text-right font-mono text-rose-400 font-bold">{a.stock}</td>
                     <td className="px-4 py-3.5 text-right font-mono text-slate-400">{a.minStock}</td>
-                    <td className="px-4 py-3.5 text-center">
-                      <button
-                        onClick={() => openMovementForProduct(a.id)}
-                        className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
-                      >
-                        Reabastecer
-                      </button>
-                    </td>
+                    {!isCashier && (
+                      <td className="px-4 py-3.5 text-center">
+                        <button
+                          onClick={() => openMovementForProduct(a.id)}
+                          className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                        >
+                          Reabastecer
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
