@@ -11,13 +11,20 @@ export const InventoryManager: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Estado del Modal
+  // Filtro de historial
+  const [historyFilter, setHistoryFilter] = useState<string>('ALL');
+
+  // Estado del Modal de Registro de Movimiento
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedProductId, setSelectedProductId] = useState<number | ''>('');
   const [movementType, setMovementType] = useState<MovementType>('ENTRY');
   const [quantity, setQuantity] = useState<number>(1);
   const [reason, setReason] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // Estado del Modal de Detalle de Venta / Movimiento
+  const [selectedMovement, setSelectedMovement] = useState<InventoryMovementResponse | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -44,6 +51,11 @@ export const InventoryManager: React.FC = () => {
   const openMovementForProduct = (productId: number) => {
     setSelectedProductId(productId);
     setIsModalOpen(true);
+  };
+
+  const openDetailModal = (movement: InventoryMovementResponse) => {
+    setSelectedMovement(movement);
+    setIsDetailModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,13 +101,35 @@ export const InventoryManager: React.FC = () => {
     return labels[type] || type;
   };
 
+  // Auxiliares para extraer Usuario y Cliente independientemente de la estructura de la respuesta
+  const getUserName = (m: any): string => {
+    if (m.userName) return m.userName;
+    if (typeof m.user === 'string') return m.user;
+    if (m.user && typeof m.user === 'object' && m.user.name) return m.user.name;
+    if (m.createdBy) return m.createdBy;
+    return 'Sistema / General';
+  };
+
+  const getCustomerName = (m: any): string => {
+    if (m.customerName) return m.customerName;
+    if (typeof m.customer === 'string') return m.customer;
+    if (m.customer && typeof m.customer === 'object' && m.customer.name) return m.customer.name;
+    if (m.clientName) return m.clientName;
+    return m.type === 'SALE' ? 'Cliente General' : 'N/A';
+  };
+
+  const filteredMovements = movements.filter((m) => {
+    if (historyFilter === 'ALL') return true;
+    return m.type === historyFilter;
+  });
+
   return (
     <div className="p-6 bg-slate-900 min-h-screen text-slate-100 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Gestión de Inventario</h1>
-          <p className="text-slate-400 text-sm">Control de existencias actuales, movimientos e historial atómico</p>
+          <h1 className="text-2xl font-bold text-white">Gestión de Inventario y Ventas</h1>
+          <p className="text-slate-400 text-sm">Control de existencias, historial de ventas, usuarios y clientes</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
@@ -121,7 +155,7 @@ export const InventoryManager: React.FC = () => {
             activeTab === 'history' ? 'bg-slate-800 text-indigo-400' : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          Historial de Movimientos
+          Historial de Movimientos / Ventas
         </button>
         <button
           onClick={() => setActiveTab('alerts')}
@@ -201,40 +235,85 @@ export const InventoryManager: React.FC = () => {
           </div>
         </div>
       ) : activeTab === 'history' ? (
-        /* Vista: Historial */
+        /* Vista: Historial con Filtro y Detalle de Ventas */
         <div className="bg-slate-800/50 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
+          {/* Barra de Filtro */}
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-800/30 border-b border-slate-800">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400 uppercase">Filtrar por:</span>
+              <select
+                value={historyFilter}
+                onChange={(e) => setHistoryFilter(e.target.value)}
+                className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+              >
+                <option value="ALL">Todos los Movimientos</option>
+                <option value="SALE">Solo Ventas</option>
+                <option value="ENTRY">Solo Entradas</option>
+                <option value="EXIT">Solo Salidas</option>
+                <option value="RETURN">Solo Devoluciones</option>
+                <option value="ADJUSTMENT">Solo Ajustes</option>
+              </select>
+            </div>
+            <span className="text-xs text-slate-400">
+              Mostrando {filteredMovements.length} registro(s)
+            </span>
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-800/80 text-slate-400 uppercase text-xs">
                 <tr>
-                  <th className="px-6 py-3">Fecha</th>
-                  <th className="px-6 py-3">Producto</th>
-                  <th className="px-6 py-3">Tipo</th>
-                  <th className="px-6 py-3 text-right">Cantidad</th>
-                  <th className="px-6 py-3 text-right">Prev. Stock</th>
-                  <th className="px-6 py-3 text-right">Nuevo Stock</th>
-                  <th className="px-6 py-3">Motivo / Ref</th>
+                  <th className="px-4 py-3">Fecha</th>
+                  <th className="px-4 py-3">Producto</th>
+                  <th className="px-4 py-3">Tipo</th>
+                  <th className="px-4 py-3 text-right">Cant.</th>
+                  <th className="px-4 py-3">Usuario</th>
+                  <th className="px-4 py-3">Cliente</th>
+                  <th className="px-4 py-3 text-right">Stock (Prev → Nuevo)</th>
+                  <th className="px-4 py-3">Motivo / Ref</th>
+                  <th className="px-4 py-3 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {movements.length === 0 ? (
+                {filteredMovements.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-8 text-slate-500">No hay movimientos registrados.</td>
+                    <td colSpan={9} className="text-center py-8 text-slate-500">
+                      No hay registros para el filtro seleccionado.
+                    </td>
                   </tr>
                 ) : (
-                  movements.map((m) => (
+                  filteredMovements.map((m) => (
                     <tr key={m.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-6 py-4 text-xs text-slate-400">{new Date(m.createdAt).toLocaleString('es-CO')}</td>
-                      <td className="px-6 py-4 font-medium text-white">{m.productName}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 text-xs text-slate-400 whitespace-nowrap">
+                        {new Date(m.createdAt).toLocaleString('es-CO')}
+                      </td>
+                      <td className="px-4 py-4 font-medium text-white">{m.productName}</td>
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span className={`px-2.5 py-1 text-xs rounded-full border ${getBadgeStyle(m.type)}`}>
                           {getTypeLabel(m.type)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-mono font-semibold">{m.quantity}</td>
-                      <td className="px-6 py-4 text-right font-mono text-slate-400">{m.previousStock}</td>
-                      <td className="px-6 py-4 text-right font-mono font-bold text-white">{m.newStock}</td>
-                      <td className="px-6 py-4 text-slate-400 italic">{m.reason || 'N/A'}</td>
+                      <td className="px-4 py-4 text-right font-mono font-semibold text-white">{m.quantity}</td>
+                      <td className="px-4 py-4 text-indigo-300 font-medium text-xs whitespace-nowrap">
+                        {getUserName(m)}
+                      </td>
+                      <td className="px-4 py-4 text-emerald-300 font-medium text-xs whitespace-nowrap">
+                        {getCustomerName(m)}
+                      </td>
+                      <td className="px-4 py-4 text-right font-mono text-xs whitespace-nowrap">
+                        <span className="text-slate-400">{m.previousStock}</span> → <span className="text-white font-bold">{m.newStock}</span>
+                      </td>
+                      <td className="px-4 py-4 text-slate-400 italic text-xs max-w-xs truncate">
+                        {m.reason || 'N/A'}
+                      </td>
+                      <td className="px-4 py-4 text-center whitespace-nowrap">
+                        <button
+                          onClick={() => openDetailModal(m)}
+                          className="px-2.5 py-1 text-xs bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-md font-medium transition-colors"
+                        >
+                          Ver Detalle
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -368,6 +447,92 @@ export const InventoryManager: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ver Detalle de Venta / Movimiento */}
+      {isDetailModalOpen && selectedMovement && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="flex justify-between items-center border-b border-slate-700 pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-white">
+                  {selectedMovement.type === 'SALE' ? 'Detalle de Venta' : 'Detalle del Movimiento'}
+                </h3>
+                <p className="text-xs text-slate-400">ID Registro: #{selectedMovement.id}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsDetailModalOpen(false);
+                  setSelectedMovement(null);
+                }}
+                className="text-slate-400 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Fecha y Hora</span>
+                <span className="text-slate-200 font-medium">
+                  {new Date(selectedMovement.createdAt).toLocaleString('es-CO')}
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Tipo de Operación</span>
+                <span className={`inline-block px-2.5 py-0.5 text-xs rounded-full border mt-1 font-semibold ${getBadgeStyle(selectedMovement.type)}`}>
+                  {getTypeLabel(selectedMovement.type)}
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 col-span-2">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Producto</span>
+                <span className="text-white font-bold text-base">{selectedMovement.productName}</span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Usuario / Cajero</span>
+                <span className="text-indigo-300 font-semibold">{getUserName(selectedMovement)}</span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Cliente</span>
+                <span className="text-emerald-300 font-semibold">{getCustomerName(selectedMovement)}</span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Cantidad Afectada</span>
+                <span className="text-white font-mono font-bold text-base">{selectedMovement.quantity} u.</span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Cambio de Stock</span>
+                <span className="text-slate-300 font-mono">
+                  {selectedMovement.previousStock} → <strong className="text-white">{selectedMovement.newStock}</strong>
+                </span>
+              </div>
+
+              <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 col-span-2">
+                <span className="text-xs text-slate-400 block uppercase font-semibold">Motivo / Referencia</span>
+                <p className="text-slate-300 italic mt-0.5">{selectedMovement.reason || 'Sin observaciones'}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end border-t border-slate-700 pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDetailModalOpen(false);
+                  setSelectedMovement(null);
+                }}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white font-medium transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -128,13 +128,18 @@ public class SaleService {
         // Guardar venta
         Sale savedSale = saleRepository.save(sale);
 
+        // Definir nombre del cliente para auditoría en el historial de inventario
+        String customerName = (savedSale.getCustomer() != null)
+                ? savedSale.getCustomer().getName()
+                : "Cliente General";
+
         // Registrar movimientos de inventario
         for (SaleDetail detail : savedSale.getDetails()) {
 
             inventoryService.registerSaleMovement(
                     detail.getProduct(),
                     detail.getQuantity(),
-                    "Venta #" + savedSale.getId()
+                    "Venta #" + savedSale.getId() + " (Cliente: " + customerName + ")"
             );
         }
 
@@ -158,13 +163,22 @@ public class SaleService {
                         )
                         .toList();
 
+        Customer customer = sale.getCustomer();
+
+        // Convertir Enum a String para el DTO
+        String paymentMethodStr = (sale.getPaymentMethod() != null)
+                ? sale.getPaymentMethod().name()
+                : null;
+
         return SaleResponseDTO.builder()
                 .id(sale.getId())
                 .sellerUsername(sale.getUser().getUsername())
+                .customerId(customer != null ? customer.getId() : null)
+                .customerName(customer != null ? customer.getName() : "Cliente General")
                 .subtotal(sale.getSubtotal())
                 .tax(sale.getTax())
                 .total(sale.getTotal())
-                .paymentMethod(sale.getPaymentMethod())
+                .paymentMethod(paymentMethodStr)
                 .status(sale.getStatus())
                 .createdAt(sale.getCreatedAt())
                 .details(detailDTOs)
