@@ -17,11 +17,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     Optional<Customer> findByDocumentNumber(String documentNumber);
 
     @Query("SELECT c FROM Customer c WHERE " +
-            "(:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(c.documentNumber) LIKE LOWER(CONCAT('%', :search, '%')))")
+            "(:search IS NULL OR :search = '' OR " +
+            "LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "(c.documentNumber IS NOT NULL AND LOWER(c.documentNumber) LIKE LOWER(CONCAT('%', :search, '%'))))")
     Page<Customer> searchCustomers(@Param("search") String search, Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(s.total), 0) FROM Sale s WHERE s.customer.id = :customerId")
+    @Query("SELECT SUM(s.total) FROM Sale s WHERE s.customer.id = :customerId")
     BigDecimal getTotalSpentByCustomerId(@Param("customerId") Long customerId);
 
     @Query("SELECT COUNT(s) FROM Sale s WHERE s.customer.id = :customerId")

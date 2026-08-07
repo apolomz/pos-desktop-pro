@@ -46,10 +46,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api/v1/auth/**",
                                 "/health"
-
                         ).permitAll()
-                        .requestMatchers("/api/v1/categories/**").authenticated()
-                        .requestMatchers("/api/v1/products/**").authenticated()
+                        .requestMatchers("/api/v1/categories", "/api/v1/categories/**").authenticated()
+                        .requestMatchers("/api/v1/products", "/api/v1/products/**").authenticated()
+                        .requestMatchers("/api/v1/customers", "/api/v1/customers/**").authenticated()
                         .anyRequest().authenticated()
                 );
 

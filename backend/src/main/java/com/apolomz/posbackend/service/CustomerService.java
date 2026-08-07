@@ -20,7 +20,8 @@ public class CustomerService {
 
     @Transactional(readOnly = true)
     public Page<CustomerResponseDTO> findAll(String search, Pageable pageable) {
-        return customerRepository.searchCustomers(search, pageable)
+        String cleanSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+        return customerRepository.searchCustomers(cleanSearch, pageable)
                 .map(this::mapToResponse);
     }
 
@@ -33,15 +34,19 @@ public class CustomerService {
 
     @Transactional
     public CustomerResponseDTO create(CustomerRequestDTO dto) {
-        if (dto.getDocumentNumber() != null && !dto.getDocumentNumber().isBlank()) {
-            customerRepository.findByDocumentNumber(dto.getDocumentNumber()).ifPresent(c -> {
+        String docNumber = (dto.getDocumentNumber() != null && !dto.getDocumentNumber().isBlank())
+                ? dto.getDocumentNumber().trim()
+                : null;
+
+        if (docNumber != null) {
+            customerRepository.findByDocumentNumber(docNumber).ifPresent(c -> {
                 throw new RuntimeException("Ya existe un cliente registrado con ese documento");
             });
         }
 
         Customer customer = Customer.builder()
                 .name(dto.getName())
-                .documentNumber(dto.getDocumentNumber())
+                .documentNumber(docNumber)
                 .phone(dto.getPhone())
                 .email(dto.getEmail())
                 .isActive(true)
@@ -55,8 +60,18 @@ public class CustomerService {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
+        String docNumber = (dto.getDocumentNumber() != null && !dto.getDocumentNumber().isBlank())
+                ? dto.getDocumentNumber().trim()
+                : null;
+
+        if (docNumber != null && !docNumber.equals(customer.getDocumentNumber())) {
+            customerRepository.findByDocumentNumber(docNumber).ifPresent(c -> {
+                throw new RuntimeException("Ya existe otro cliente registrado con ese documento");
+            });
+        }
+
         customer.setName(dto.getName());
-        customer.setDocumentNumber(dto.getDocumentNumber());
+        customer.setDocumentNumber(docNumber);
         customer.setPhone(dto.getPhone());
         customer.setEmail(dto.getEmail());
 
@@ -82,8 +97,8 @@ public class CustomerService {
                 .phone(customer.getPhone())
                 .email(customer.getEmail())
                 .isActive(customer.getIsActive())
-                .totalSpent(totalSpent)
-                .totalSales(totalSales)
+                .totalSpent(totalSpent != null ? totalSpent : BigDecimal.ZERO)
+                .totalSales(totalSales != null ? totalSales : 0L)
                 .createdAt(customer.getCreatedAt())
                 .build();
     }
