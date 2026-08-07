@@ -9,13 +9,9 @@ import {
   Download,
   Plus,
   Power,
-  Edit2,
   CheckCircle2,
   AlertTriangle,
   FileText,
-  Clock,
-  UserCheck,
-  Shield,
   Loader2,
   Lock,
   Unlock,
@@ -25,7 +21,7 @@ import { userService, type UserResponse } from '../services/userService';
 import { cashShiftService, type CashShift } from '../services/cashShiftService';
 import { expenseService, type Expense } from '../services/expenseService';
 import { backupService } from '../services/backupService';
-import { formatExpenseCategory, formatRole, formatShiftStatus, formatCurrency } from '../utils/formatters';
+import { formatExpenseCategory, formatRole } from '../utils/formatters';
 
 export const SettingsDashboard: React.FC = () => {
   const userRole = (localStorage.getItem('role') || '').toUpperCase();

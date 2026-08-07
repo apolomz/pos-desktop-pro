@@ -39,10 +39,13 @@ public class AuthService {
         // 2. Extraer UserDetails
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        // 3. Generar el token
+        // 3. Generar el token y recuperar usuario
         String token = jwtService.generateToken(userDetails);
+        User user = userRepository.findByUsername(request.username())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        String roleName = user.getRole() != null ? user.getRole().getName() : "CASHIER";
 
-        return new LoginResponse(token);
+        return new LoginResponse(token, roleName, user.getUsername(), user.getFullName());
     }
 
     public LoginResponse register(RegisterRequest request) {
@@ -55,7 +58,7 @@ public class AuthService {
         User user = User.builder()
                 .fullName(request.fullName())
                 .username(request.username())
-                .password(passwordEncoder.encode(request.password())) // 🔒 Encriptado BCrypt
+                .password(passwordEncoder.encode(request.password()))
                 .role(role)
                 .build();
 
@@ -64,6 +67,7 @@ public class AuthService {
 
         // 4. Generar y retornar su token de una vez
         String token = jwtService.generateToken(user);
-        return new LoginResponse(token);
+        String roleName = role.getName();
+        return new LoginResponse(token, roleName, user.getUsername(), user.getFullName());
     }
 }

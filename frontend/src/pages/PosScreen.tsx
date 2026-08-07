@@ -10,7 +10,7 @@ import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
 import { cashShiftService, type CashShift } from '../services/cashShiftService';
 import type { Product } from '../types/Product';
-import { Lock, Unlock, Loader2, DollarSign, Store } from 'lucide-react';
+import { Lock, Unlock, Loader2, Store } from 'lucide-react';
 import { formatCurrency } from '../utils/formatters';
 
 export const PosScreen: React.FC = () => {
