@@ -18,5 +18,5 @@ public class SaleRequestDTO {
     @NotNull(message = "El método de pago es obligatorio")
     private PaymentMethod paymentMethod;
 
-    private Long customerId; // Opcional
+    private Long customerId;
 }

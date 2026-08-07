@@ -1,6 +1,5 @@
 package com.apolomz.posbackend.dto.response;
 
-import com.apolomz.posbackend.model.enums.PaymentMethod;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,10 +12,12 @@ import java.util.List;
 public class SaleResponseDTO {
     private Long id;
     private String sellerUsername;
+    private Long customerId;
+    private String customerName;
     private BigDecimal subtotal;
     private BigDecimal tax;
     private BigDecimal total;
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
     private String status;
     private LocalDateTime createdAt;
     private List<SaleDetailResponseDTO> details;

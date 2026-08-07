@@ -2,6 +2,7 @@ package com.apolomz.posbackend.repository;
 
 import com.apolomz.posbackend.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,4 +17,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Buscar por nombre y estado
     List<Product> findByNameContainingIgnoreCaseAndIsActive(String name, Boolean isActive);
+
+    @Query("SELECT p FROM Product p WHERE p.stock <= p.minStock AND p.isActive = true")
+    List<Product> findLowStockProducts();
 }
