@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation, Outlet } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  Outlet,
+} from 'react-router-dom';
+
 import { ProtectedRoute } from './ProtectedRoute';
 import { Layout } from '../layouts/Layout';
 import { Login } from '../components/Login';
+
 import { PosScreen } from '../pages/PosScreen';
 import { ProductManager } from '../components/ProductManager';
 import { CategoryManager } from '../components/CategoryManager';
 import { InventoryManager } from '../components/InventoryManager';
+import { CustomerManager } from '../components/CustomerManager';
 
-type TabType = 'pos' | 'products' | 'categories' | 'inventory';
+type TabType =
+  | 'pos'
+  | 'products'
+  | 'categories'
+  | 'inventory'
+  | 'customers';
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -18,6 +33,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     if (location.pathname.startsWith('/products')) return 'products';
     if (location.pathname.startsWith('/categories')) return 'categories';
     if (location.pathname.startsWith('/inventory')) return 'inventory';
+    if (location.pathname.startsWith('/customers')) return 'customers';
+
     return 'pos';
   };
 
@@ -37,7 +54,10 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 };
 
 export const AppRoutes: React.FC = () => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem('token')
+  );
+
   const navigate = useNavigate();
 
   const handleLoginSuccess = (newToken: string) => {
@@ -66,19 +86,46 @@ export const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Rutas Protegidas en bloque */}
+      {/* Rutas Protegidas */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout onLogout={handleLogout} />}>
-          <Route path="/" element={<Navigate to="/pos" replace />} />
-          <Route path="/pos" element={<PosScreen />} />
-          <Route path="/products" element={<ProductManager />} />
-          <Route path="/categories" element={<CategoryManager />} />
-          <Route path="/inventory" element={<InventoryManager />} />
+          <Route
+            path="/"
+            element={<Navigate to="/pos" replace />}
+          />
+
+          <Route
+            path="/pos"
+            element={<PosScreen />}
+          />
+
+          <Route
+            path="/products"
+            element={<ProductManager />}
+          />
+
+          <Route
+            path="/categories"
+            element={<CategoryManager />}
+          />
+
+          <Route
+            path="/inventory"
+            element={<InventoryManager />}
+          />
+
+          <Route
+            path="/customers"
+            element={<CustomerManager />}
+          />
         </Route>
       </Route>
 
-      {/* Redirección ante rutas no encontradas */}
-      <Route path="*" element={<Navigate to="/pos" replace />} />
+      {/* Ruta no encontrada */}
+      <Route
+        path="*"
+        element={<Navigate to="/pos" replace />}
+      />
     </Routes>
   );
 };
