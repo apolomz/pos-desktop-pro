@@ -19,9 +19,13 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     try {
       const response = await api.post('/auth/login', { username, password });
-      const token = response.data.token;
+      const { token, role, username: authUsername, fullName } = response.data;
 
       localStorage.setItem('token', token);
+      if (role) localStorage.setItem('role', role);
+      if (authUsername) localStorage.setItem('username', authUsername);
+      if (fullName) localStorage.setItem('fullName', fullName);
+
       onLoginSuccess(token);
     } catch (err: any) {
       if (err.response && err.response.status === 401) {

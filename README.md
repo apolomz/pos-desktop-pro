@@ -1,19 +1,22 @@
 # POS Desktop Pro
 
-A modern, high-performance Point of Sale (POS) desktop application built with Java 21, Spring Boot, React, TypeScript, and Electron.
+A modern, high-performance, and feature-rich Point of Sale (POS) desktop application built with Java 21 (Spring Boot 3), React 18, TypeScript, Tailwind CSS, and Electron.
 
 ---
 
 ## 🎯 Project Overview
 
-**POS Desktop Pro** is a robust desktop application designed for small and medium-sized businesses to streamline sales, inventory, customers, and business analytics.
+**POS Desktop Pro** is an enterprise-grade point-of-sale application designed for small and medium businesses to manage sales transactions, inventory movements, customer relations, cash shift arqueos, payroll/expenses, business reports, and data backups.
 
 ### Key Features
-- **100% Offline Capability**: Runs entirely locally with local client-server architecture.
-- **Standalone Desktop App**: Self-contained executable (.exe) built using Electron.
-- **Relational Database**: Powered by PostgreSQL with Flyway database migrations.
-- **Business Intelligence & Analytics**: Interactive dashboards for sales, revenue, profit margins, and inventory valuation.
-- **Optional AI Assistant**: AI integration via OpenAI for smart sales summaries and recommendations.
+- **100% Offline Capability**: Local client-server architecture with standalone desktop executable (.exe).
+- **Cash Shift Control & Arqueo**: Strict sales validation requiring open cash shifts, initial base input, automated cash balance calculation (`Expected = Initial Base + Cash Sales - Expenses`), and count variance reporting.
+- **Grouped Sales & Invoice Traceability**: View itemized transaction receipts with breakdown of subtotal, tax, payment method, seller, and customer.
+- **Advanced Filtering Across All Modules**: Search by text, date ranges, categories, and stock/user statuses across Products, Inventory, Customers, Shifts, and Expenses.
+- **Operational Expense Management**: Log payroll advances/salaries and raw material purchases directly against active cash shift balances.
+- **Business Intelligence & Analytics**: Interactive dashboards for sales, net profit margins, top-selling products, and inventory valuation.
+- **Data Backups & CSV Export**: Export full database backups in JSON or readable `.csv` format (openable in Microsoft Excel / Google Sheets).
+- **User Friendly Error Handling**: Clean Spanish error notifications capturing HTTP status codes (400, 401, 403, 409, 500) without exposing technical stack traces.
 
 ---
 
@@ -21,7 +24,7 @@ A modern, high-performance Point of Sale (POS) desktop application built with Ja
 
 ### Backend
 - **Java 21**
-- **Spring Boot 3**
+- **Spring Boot 3.x**
 - **Spring Security** (JWT Authentication & BCrypt)
 - **Spring Data JPA** / Hibernate
 - **PostgreSQL**
@@ -33,38 +36,44 @@ A modern, high-performance Point of Sale (POS) desktop application built with Ja
 - **React 18**
 - **TypeScript**
 - **Vite**
-- **TailwindCSS**
-- **React Router**
-- **Axios**
+- **Tailwind CSS** (Slate Dark Mode UI)
+- **React Router DOM**
+- **Lucide React** & **Axios**
 
 ### Desktop & DevOps
 - **Electron**
-- **Git** & **GitHub Actions** (CI/CD Automated Testing & Build Pipeline)
+- **Git** & **GitHub Actions** (CI/CD Pipeline)
 
 ---
 
-## 📐 System Architecture
+## 🚀 Setup & Installation Guide
 
+### Prerequisites
+- Java 21 JDK
+- Node.js (v18 or higher) & npm
+- PostgreSQL Database
+
+### 1. Backend Setup (Spring Boot)
+```bash
+cd backend
+# Run database migrations and start server
+./gradlew bootRun
 ```
-+-------------------------------------------------------+
-|                    Electron App                       |
-|  +-------------------------------------------------+  |
-|  |                 React + Vite UI                 |  |
-|  +------------------------+------------------------+  |
-+---------------------------|---------------------------+
-                            | HTTP / REST API (JWT)
-                            v
-+-------------------------------------------------------+
-|               Spring Boot Backend (v1)                |
-|  +-------------------------------------------------+  |
-|  |  Controllers -> Services -> JPA Repositories    |  |
-|  +------------------------+------------------------+  |
-+---------------------------|---------------------------+
-                            | JDBC
-                            v
-+-------------------------------------------------------+
-|                 PostgreSQL Database                   |
-+-------------------------------------------------------+
+The backend server will run on `http://localhost:8080/api/v1`.
+
+### 2. Frontend Setup (React + Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The frontend dev server will launch on `http://localhost:5173`.
+
+### 3. Desktop Release (Electron)
+```bash
+cd desktop
+npm install
+npm run start
 ```
 
 ---
@@ -74,35 +83,19 @@ A modern, high-performance Point of Sale (POS) desktop application built with Ja
 ```
 posSYSTEM/
 ├── backend/       # Spring Boot application (Controllers, Services, Repositories, Migrations)
-├── frontend/      # React + TypeScript SPA (Components, Views, Services, Tailwind)
-├── desktop/       # Electron wrapper & native integrations
-├── database/      # Database scripts and schemas
-├── docs/          # Sprint planning, UML diagrams, and product backlog
-└── README.md      # Documentation
+├── frontend/      # React + TypeScript SPA (Components, Pages, Services, Formatters)
+├── desktop/       # Electron wrapper & native executable config
+├── database/      # Database SQL scripts
+├── docs/          # Product backlog & sprint documentation
+├── LICENSE        # MIT License
+└── README.md      # Main documentation
 ```
 
 ---
 
-## 📊 Project Status & Roadmap
+## 📄 License
 
-- [x] **Sprint 0 — Planning**: Backlog, Architecture, ERD, UML, and API Design.
-- [x] **Sprint 1 — Infrastructure**: Spring Boot, React, Electron, Docker, PostgreSQL, and CI pipeline.
-- [x] **Sprint 2 — Security**: User & Role CRUD, JWT Authentication, Spring Security, Login view.
-- [x] **Sprint 3 — Catalogs**: Product & Category management, image upload, filters, min stock.
-- [x] **Sprint 4 — Point of Sale (POS)**: Core sales module, instant product search, cart, checkout.
-- [x] **Sprint 5 — Inventory**: Stock movements (IN/OUT/ADJUSTMENT), movement history, alerts.
-- [x] **Sprint 6 — Customers**: Customer CRUD, sale association, history, and total spending metrics.
-- [x] **Sprint 7 — Reports & Statistics**:
-  - ✔ **Financial Reports**: Daily, Weekly, Monthly, and Yearly revenue & net profit summaries.
-  - ✔ **Analytics**: Summary KPI cards, profit margins, average ticket, revenue growth.
-  - ✔ **Best-Sellers**: Top 5 best-selling products by quantity and revenue.
-  - ✔ **Inventory Valuation**: Category stock value distribution and low-stock alerts.
-  - ✔ **Interactive Charts**: Responsive time-series charts for revenue vs net profit.
-- [ ] **Sprint 8 — Settings**: Store profile, invoice customization, DB backup & restore.
-- [ ] **Sprint 9 — AI Assistant**: Optional smart chat, sales insights, and recommendations.
-- [ ] **Sprint 10 — Quality**: End-to-end testing, coverage enhancement, refactoring.
-- [ ] **Sprint 11 — Desktop Release**: Executable build (.exe), installer, user guide.
-- [ ] **Sprint 12 — Release 1.0**: Final bug fixes, polish, and production release.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 

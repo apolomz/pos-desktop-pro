@@ -46,4 +46,9 @@ public class UserController {
     public void delete(@PathVariable Long id) {
         userService.delete(id);
     }
+
+    @PatchMapping("/{id}/status")
+    public UserResponse toggleStatus(@PathVariable Long id) {
+        return userService.toggleActiveStatus(id);
+    }
 }

@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Package, Power, AlertTriangle, Loader2, Info } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Power, AlertTriangle, Loader2, Filter } from 'lucide-react';
 import type { Product, ProductRequest } from '../types/Product';
 import type { Category } from '../types/category';
 import { productService } from '../services/productService';
 import { categoryService } from '../services/categoryService';
+import { formatCurrency } from '../utils/formatters';
 
 export const ProductManager: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filtros Avanzados
   const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+
+  const userRole = (localStorage.getItem('role') || '').toUpperCase();
+  const isCashier = userRole.includes('CASHIER');
+
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -17,7 +26,7 @@ export const ProductManager: React.FC = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState<number | ''>('');
-  const [stock, setStock] = useState<number>(0); // Inicializa siempre en 0
+  const [stock, setStock] = useState<number>(0);
   const [minStock, setMinStock] = useState<number | ''>(5);
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [imageUrl, setImageUrl] = useState('');
@@ -27,8 +36,8 @@ export const ProductManager: React.FC = () => {
     try {
       setLoading(true);
       const [prods, cats] = await Promise.all([
-        productService.getProducts(search),
-        categoryService.getAll()
+        productService.getProducts(),
+        categoryService.getAll(),
       ]);
       setProducts(prods);
       setCategories(cats);
@@ -40,9 +49,8 @@ export const ProductManager: React.FC = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchData(), 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+    fetchData();
+  }, []);
 
   const handleOpenModal = (product?: Product) => {
     if (product) {
@@ -50,7 +58,7 @@ export const ProductManager: React.FC = () => {
       setName(product.name);
       setDescription(product.description || '');
       setPrice(product.price);
-      setStock(product.stock); // Muestra el stock actual pero bloqueado
+      setStock(product.stock);
       setMinStock(product.minStock);
       setCategoryId(product.category.id);
       setImageUrl(product.imageUrl || '');
@@ -59,7 +67,7 @@ export const ProductManager: React.FC = () => {
       setName('');
       setDescription('');
       setPrice('');
-      setStock(0); // Forzado a 0 al crear un nuevo producto
+      setStock(0);
       setMinStock(5);
       setCategoryId(categories[0]?.id || '');
       setImageUrl('');
@@ -76,10 +84,10 @@ export const ProductManager: React.FC = () => {
       name,
       description,
       price: Number(price),
-      stock: editingProduct ? editingProduct.stock : 0, // Garantiza 0 al crear
+      stock: editingProduct ? editingProduct.stock : 0,
       minStock: Number(minStock),
       categoryId: Number(categoryId),
-      imageUrl
+      imageUrl,
     };
 
     try {
@@ -117,6 +125,21 @@ export const ProductManager: React.FC = () => {
     }
   };
 
+  // Filtrado dinámico avanzado
+  const filteredProducts = products.filter((p) => {
+    const term = search.toLowerCase();
+    const matchesSearch = !term || p.name.toLowerCase().includes(term) || (p.description && p.description.toLowerCase().includes(term));
+    const matchesCategory = selectedCategory === 'ALL' || (p.category && p.category.name === selectedCategory);
+    
+    let matchesStatus = true;
+    if (statusFilter === 'ACTIVE') matchesStatus = p.isActive === true;
+    else if (statusFilter === 'INACTIVE') matchesStatus = p.isActive === false;
+    else if (statusFilter === 'LOW_STOCK') matchesStatus = p.stock <= p.minStock && p.stock > 0;
+    else if (statusFilter === 'OUT_OF_STOCK') matchesStatus = p.stock === 0;
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -126,27 +149,67 @@ export const ProductManager: React.FC = () => {
             <Package className="w-6 h-6 text-indigo-400" />
             <span>Catálogo de Productos</span>
           </h2>
-          <p className="text-slate-400 text-xs">Administra la ficha técnica y precios de venta</p>
+          <p className="text-slate-400 text-xs">Administra la ficha técnica, precios e imágenes de venta</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nuevo Producto</span>
-        </button>
+        {!isCashier && (
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nuevo Producto</span>
+          </button>
+        )}
       </div>
 
-      {/* Buscador */}
-      <div className="relative">
-        <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-500" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar producto por nombre..."
-          className="w-full pl-11 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
+      {/* Barra de Filtros Avanzados */}
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3 shadow-lg">
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+          <Filter className="w-4 h-4 text-indigo-400" />
+          <span>Filtros de Búsqueda</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Buscador */}
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nombre o descripción..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          {/* Categoría */}
+          <div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="ALL">Todas las Categorías</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Estado */}
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3.5 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="ALL">Todos los Estados</option>
+              <option value="ACTIVE">Solo Activos</option>
+              <option value="INACTIVE">Solo Inactivos</option>
+              <option value="LOW_STOCK">Stock Bajo</option>
+              <option value="OUT_OF_STOCK">Agotados</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Tabla de Productos */}
@@ -155,7 +218,7 @@ export const ProductManager: React.FC = () => {
           <div className="p-12 flex justify-center text-slate-500">
             <Loader2 className="w-6 h-6 animate-spin" />
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="p-12 text-center text-slate-500 text-sm">
             No se encontraron productos.
           </div>
@@ -168,17 +231,28 @@ export const ProductManager: React.FC = () => {
                 <th className="py-3.5 px-6">Precio</th>
                 <th className="py-3.5 px-6">Stock</th>
                 <th className="py-3.5 px-6">Estado</th>
-                <th className="py-3.5 px-6 text-right">Acciones</th>
+                {!isCashier && <th className="py-3.5 px-6 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {products.map((prod) => {
+              {filteredProducts.map((prod) => {
                 const isLowStock = prod.stock <= prod.minStock;
                 return (
                   <tr key={prod.id} className={`hover:bg-slate-800/30 transition-colors ${!prod.isActive ? 'opacity-50' : ''}`}>
                     <td className="py-4 px-6 font-semibold text-white">
-                      <div>{prod.name}</div>
-                      {prod.description && <span className="text-xs text-slate-500 font-normal">{prod.description}</span>}
+                      <div className="flex items-center gap-3">
+                        {prod.imageUrl ? (
+                          <img src={prod.imageUrl} alt={prod.name} className="w-10 h-10 object-cover rounded-lg border border-slate-700" />
+                        ) : (
+                          <div className="w-10 h-10 bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs">
+                            POS
+                          </div>
+                        )}
+                        <div>
+                          <div>{prod.name}</div>
+                          {prod.description && <span className="text-xs text-slate-500 font-normal">{prod.description}</span>}
+                        </div>
+                      </div>
                     </td>
                     <td className="py-4 px-6">
                       <span className="px-2.5 py-1 bg-slate-800 border border-slate-700/60 text-slate-300 rounded-lg text-xs font-medium">
@@ -186,7 +260,7 @@ export const ProductManager: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-4 px-6 font-mono text-indigo-300 font-bold">
-                      ${Number(prod.price).toLocaleString('es-CO')}
+                      {formatCurrency(prod.price)}
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-1.5">
@@ -202,32 +276,34 @@ export const ProductManager: React.FC = () => {
                     </td>
                     <td className="py-4 px-6">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        prod.isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        prod.isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                       }`}>
                         {prod.isActive ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right space-x-1">
-                      <button
-                        onClick={() => handleToggleStatus(prod.id)}
-                        title={prod.isActive ? "Desactivar" : "Activar"}
-                        className="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-amber-500/10 transition-all"
-                      >
-                        <Power className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenModal(prod)}
-                        className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(prod.id)}
-                        className="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+                    {!isCashier && (
+                      <td className="py-4 px-6 text-right space-x-1">
+                        <button
+                          onClick={() => handleToggleStatus(prod.id)}
+                          title={prod.isActive ? "Desactivar" : "Activar"}
+                          className="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-amber-500/10 transition-all cursor-pointer"
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenModal(prod)}
+                          className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all cursor-pointer"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(prod.id)}
+                          className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -245,13 +321,24 @@ export const ProductManager: React.FC = () => {
             </h3>
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nombre</label>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Nombre del Producto</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ej: Empanada de Carne, Gaseosa..."
+                  placeholder="Ej: Cafe Especial, Camiseta..."
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">URL de Imagen (Opcional)</label>
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://ejemplo.com/imagen.jpg"
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -288,9 +375,7 @@ export const ProductManager: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                    {editingProduct ? 'Stock Actual' : 'Stock Inicial'}
-                  </label>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Stock</label>
                   <input
                     type="number"
                     disabled
@@ -312,25 +397,18 @@ export const ProductManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-start gap-2.5 text-xs text-indigo-300">
-                <Info className="w-4 h-4 shrink-0 mt-0.5 text-indigo-400" />
-                <span>
-                  El stock inicial será <strong>0</strong>. Registra una <strong>Entrada</strong> en la pestaña de <strong>Inventario</strong> para agregar existencias.
-                </span>
-              </div>
-
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-all"
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar Producto'}
                 </button>

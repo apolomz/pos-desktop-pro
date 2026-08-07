@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Users, Search, Plus, Edit2, Power, ShoppingBag, Loader2, X } from 'lucide-react';
 import type { Customer, CustomerRequest } from '../types/customer';
 import { customerService } from '../services/customerService';
+import { formatCurrency } from '../utils/formatters';
 
 export const CustomerManager: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -9,6 +10,9 @@ export const CustomerManager: React.FC = () => {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
+  const userRole = (localStorage.getItem('role') || '').toUpperCase();
+  const isCashier = userRole.includes('CASHIER');
 
   // Form states
   const [name, setName] = useState('');
@@ -91,13 +95,15 @@ export const CustomerManager: React.FC = () => {
           </h2>
           <p className="text-slate-400 text-xs">Administra clientes, historial de compras y total gastado</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nuevo Cliente</span>
-        </button>
+        {!isCashier && (
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nuevo Cliente</span>
+          </button>
+        )}
       </div>
 
       {/* Buscador */}
@@ -132,7 +138,7 @@ export const CustomerManager: React.FC = () => {
                 <th className="py-3.5 px-6">Compras</th>
                 <th className="py-3.5 px-6">Total Gastado</th>
                 <th className="py-3.5 px-6">Estado</th>
-                <th className="py-3.5 px-6 text-right">Acciones</th>
+                {!isCashier && <th className="py-3.5 px-6 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -155,7 +161,7 @@ export const CustomerManager: React.FC = () => {
                     </span>
                   </td>
                   <td className="py-4 px-6 font-mono text-emerald-400 font-bold">
-                    ${Number(c.totalSpent || 0).toLocaleString('es-CO')}
+                    {formatCurrency(c.totalSpent || 0)}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
@@ -164,21 +170,23 @@ export const CustomerManager: React.FC = () => {
                       {c.isActive ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-right space-x-1">
-                    <button
-                      onClick={() => handleToggleStatus(c.id)}
-                      title={c.isActive ? "Desactivar" : "Activar"}
-                      className="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-amber-500/10 transition-all"
-                    >
-                      <Power className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleOpenModal(c)}
-                      className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                  </td>
+                  {!isCashier && (
+                    <td className="py-4 px-6 text-right space-x-1">
+                      <button
+                        onClick={() => handleToggleStatus(c.id)}
+                        title={c.isActive ? "Desactivar" : "Activar"}
+                        className="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-amber-500/10 transition-all cursor-pointer"
+                      >
+                        <Power className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenModal(c)}
+                        className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

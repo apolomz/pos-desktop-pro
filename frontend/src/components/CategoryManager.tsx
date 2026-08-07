@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit2, Trash2, Tags, Loader2 } from 'lucide-react';
-import type{ Category, CategoryRequest } from '../types/category';
+import type { Category, CategoryRequest } from '../types/category';
 import { categoryService } from '../services/categoryService';
 
 export const CategoryManager: React.FC = () => {
@@ -12,6 +12,9 @@ export const CategoryManager: React.FC = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const userRole = (localStorage.getItem('role') || '').toUpperCase();
+  const isCashier = userRole.includes('CASHIER');
 
   const loadCategories = async () => {
     try {
@@ -84,16 +87,18 @@ export const CategoryManager: React.FC = () => {
           </h2>
           <p className="text-slate-400 text-xs">Organiza los productos de tu punto de venta</p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nueva Categoría</span>
-        </button>
+        {!isCashier && (
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nueva Categoría</span>
+          </button>
+        )}
       </div>
 
-      {/* Tabla de Categorías (HU-020) */}
+      {/* Tabla de Categorías */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         {loading ? (
           <div className="p-12 flex justify-center text-slate-500">
@@ -101,7 +106,7 @@ export const CategoryManager: React.FC = () => {
           </div>
         ) : categories.length === 0 ? (
           <div className="p-12 text-center text-slate-500 text-sm">
-            No hay categorías registradas. ¡Crea la primera!
+            No hay categorías registradas.
           </div>
         ) : (
           <table className="w-full text-left text-sm text-slate-300">
@@ -110,7 +115,7 @@ export const CategoryManager: React.FC = () => {
                 <th className="py-3.5 px-6">ID</th>
                 <th className="py-3.5 px-6">Nombre</th>
                 <th className="py-3.5 px-6">Descripción</th>
-                <th className="py-3.5 px-6 text-right">Acciones</th>
+                {!isCashier && <th className="py-3.5 px-6 text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
@@ -119,20 +124,22 @@ export const CategoryManager: React.FC = () => {
                   <td className="py-4 px-6 text-slate-500 font-mono text-xs">#{cat.id}</td>
                   <td className="py-4 px-6 font-semibold text-white">{cat.name}</td>
                   <td className="py-4 px-6 text-slate-400 text-xs">{cat.description || 'Sin descripción'}</td>
-                  <td className="py-4 px-6 text-right space-x-2">
-                    <button
-                      onClick={() => handleOpenModal(cat)}
-                      className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(cat.id)}
-                      className="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
+                  {!isCashier && (
+                    <td className="py-4 px-6 text-right space-x-2">
+                      <button
+                        onClick={() => handleOpenModal(cat)}
+                        className="p-2 text-slate-400 hover:text-indigo-400 rounded-lg hover:bg-indigo-500/10 transition-all cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(cat.id)}
+                        className="p-2 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -140,7 +147,7 @@ export const CategoryManager: React.FC = () => {
         )}
       </div>
 
-      {/* Modal Crear / Editar (HU-017, HU-018) */}
+      {/* Modal Crear / Editar */}
       {modalOpen && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl">
@@ -173,14 +180,14 @@ export const CategoryManager: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-all"
+                  className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-xl transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar'}
                 </button>
