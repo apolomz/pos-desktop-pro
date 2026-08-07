@@ -17,13 +17,15 @@ import { ProductManager } from '../components/ProductManager';
 import { CategoryManager } from '../components/CategoryManager';
 import { InventoryManager } from '../components/InventoryManager';
 import { CustomerManager } from '../components/CustomerManager';
+import { ReportsDashboard } from '../components/ReportsDashboard'; // 1. Importación del Dashboard
 
-type TabType =
+export type TabType =
   | 'pos'
   | 'products'
   | 'categories'
   | 'inventory'
-  | 'customers';
+  | 'customers'
+  | 'reports'; // 2. Agregado 'reports' al tipo
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     if (location.pathname.startsWith('/categories')) return 'categories';
     if (location.pathname.startsWith('/inventory')) return 'inventory';
     if (location.pathname.startsWith('/customers')) return 'customers';
+    if (location.pathname.startsWith('/reports')) return 'reports'; // 3. Reconocimiento de ruta activa
 
     return 'pos';
   };
@@ -117,6 +120,12 @@ export const AppRoutes: React.FC = () => {
           <Route
             path="/customers"
             element={<CustomerManager />}
+          />
+
+          {/* 4. Nueva ruta de Reportes */}
+          <Route
+            path="/reports"
+            element={<ReportsDashboard />}
           />
         </Route>
       </Route>
