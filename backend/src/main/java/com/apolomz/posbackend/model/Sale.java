@@ -24,10 +24,11 @@ public class Sale {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // El vendedor que hizo la venta
+    private User user;
 
-    @Column(name = "customer_id")
-    private Long customerId; // Opcional por ahora
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal subtotal;
@@ -50,7 +51,11 @@ public class Sale {
     private LocalDateTime createdAt;
 
     @Builder.Default
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "sale",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<SaleDetail> details = new ArrayList<>();
 
     @PrePersist

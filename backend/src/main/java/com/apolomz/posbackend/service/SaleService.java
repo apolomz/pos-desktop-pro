@@ -1,14 +1,16 @@
 package com.apolomz.posbackend.service;
 
-import com.apolomz.posbackend.dto.response.SaleDetailResponseDTO;
 import com.apolomz.posbackend.dto.request.SaleItemRequestDTO;
 import com.apolomz.posbackend.dto.request.SaleRequestDTO;
+import com.apolomz.posbackend.dto.response.SaleDetailResponseDTO;
 import com.apolomz.posbackend.dto.response.SaleResponseDTO;
 import com.apolomz.posbackend.exception.ResourceNotFoundException;
+import com.apolomz.posbackend.model.Customer;
 import com.apolomz.posbackend.model.Product;
 import com.apolomz.posbackend.model.Sale;
 import com.apolomz.posbackend.model.SaleDetail;
 import com.apolomz.posbackend.model.User;
+import com.apolomz.posbackend.repository.CustomerRepository;
 import com.apolomz.posbackend.repository.ProductRepository;
 import com.apolomz.posbackend.repository.SaleRepository;
 import com.apolomz.posbackend.repository.UserRepository;
@@ -26,16 +28,37 @@ public class SaleService {
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
-    private final InventoryService inventoryService; // Inyección añadida
+    private final CustomerRepository customerRepository;
+    private final InventoryService inventoryService;
 
     @Transactional
-    public SaleResponseDTO createSale(SaleRequestDTO requestDTO, String sellerUsername) {
+    public SaleResponseDTO createSale(
+            SaleRequestDTO requestDTO,
+            String sellerUsername
+    ) {
+
         User seller = userRepository.findByUsername(sellerUsername)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado: " + sellerUsername));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Usuario no encontrado: " + sellerUsername
+                        )
+                );
+
+        Customer customer = null;
+
+        if (requestDTO.getCustomerId() != null) {
+            customer = customerRepository.findById(requestDTO.getCustomerId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Cliente no encontrado con ID: "
+                                            + requestDTO.getCustomerId()
+                            )
+                    );
+        }
 
         Sale sale = Sale.builder()
                 .user(seller)
-                .customerId(requestDTO.getCustomerId())
+                .customer(customer)
                 .paymentMethod(requestDTO.getPaymentMethod())
                 .status("COMPLETED")
                 .build();
@@ -43,25 +66,51 @@ public class SaleService {
         BigDecimal totalSale = BigDecimal.ZERO;
 
         for (SaleItemRequestDTO itemDTO : requestDTO.getItems()) {
-            Product product = productRepository.findById(itemDTO.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con ID: " + itemDTO.getProductId()));
+
+            Product product = productRepository.findById(
+                            itemDTO.getProductId()
+                    )
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException(
+                                    "Producto no encontrado con ID: "
+                                            + itemDTO.getProductId()
+                            )
+                    );
 
             if (!product.getIsActive()) {
-                throw new IllegalArgumentException("El producto '" + product.getName() + "' está inactivo.");
+                throw new IllegalArgumentException(
+                        "El producto '" + product.getName()
+                                + "' está inactivo."
+                );
             }
 
             if (product.getStock() < itemDTO.getQuantity()) {
-                throw new IllegalArgumentException("Stock insuficiente para: " + product.getName() +
-                        ". Stock actual: " + product.getStock() + ", requerido: " + itemDTO.getQuantity());
+                throw new IllegalArgumentException(
+                        "Stock insuficiente para: "
+                                + product.getName()
+                                + ". Stock actual: "
+                                + product.getStock()
+                                + ", requerido: "
+                                + itemDTO.getQuantity()
+                );
             }
 
-            // Descuento automático de stock
-            product.setStock(product.getStock() - itemDTO.getQuantity());
+            // Descontar stock
+            product.setStock(
+                    product.getStock() - itemDTO.getQuantity()
+            );
+
             productRepository.save(product);
 
-            BigDecimal itemSubtotal = product.getPrice().multiply(BigDecimal.valueOf(itemDTO.getQuantity()));
+            // Calcular subtotal del producto
+            BigDecimal itemSubtotal = product.getPrice()
+                    .multiply(
+                            BigDecimal.valueOf(itemDTO.getQuantity())
+                    );
+
             totalSale = totalSale.add(itemSubtotal);
 
+            // Crear detalle de venta
             SaleDetail detail = SaleDetail.builder()
                     .product(product)
                     .quantity(itemDTO.getQuantity())
@@ -76,11 +125,12 @@ public class SaleService {
         sale.setTax(BigDecimal.ZERO);
         sale.setTotal(totalSale);
 
-        // 1. Guardar la venta para generar el ID definitivo
+        // Guardar venta
         Sale savedSale = saleRepository.save(sale);
 
-        // 2. Registrar el movimiento en el historial de inventario por cada ítem vendido
+        // Registrar movimientos de inventario
         for (SaleDetail detail : savedSale.getDetails()) {
+
             inventoryService.registerSaleMovement(
                     detail.getProduct(),
                     detail.getQuantity(),
@@ -92,16 +142,21 @@ public class SaleService {
     }
 
     private SaleResponseDTO mapToResponseDTO(Sale sale) {
-        List<SaleDetailResponseDTO> detailDTOs = sale.getDetails().stream()
-                .map(d -> SaleDetailResponseDTO.builder()
-                        .id(d.getId())
-                        .productId(d.getProduct().getId())
-                        .productName(d.getProduct().getName())
-                        .quantity(d.getQuantity())
-                        .unitPrice(d.getUnitPrice())
-                        .subtotal(d.getSubtotal())
-                        .build())
-                .toList();
+
+        List<SaleDetailResponseDTO> detailDTOs =
+                sale.getDetails()
+                        .stream()
+                        .map(d ->
+                                SaleDetailResponseDTO.builder()
+                                        .id(d.getId())
+                                        .productId(d.getProduct().getId())
+                                        .productName(d.getProduct().getName())
+                                        .quantity(d.getQuantity())
+                                        .unitPrice(d.getUnitPrice())
+                                        .subtotal(d.getSubtotal())
+                                        .build()
+                        )
+                        .toList();
 
         return SaleResponseDTO.builder()
                 .id(sale.getId())
