@@ -155,7 +155,7 @@ export const CustomerManager: React.FC = () => {
                     </span>
                   </td>
                   <td className="py-4 px-6 font-mono text-emerald-400 font-bold">
-                    ${Number(c.totalSpent || 0).toLocaleString('es-CO')}
+                    {formatCurrency(c.totalSpent || 0)}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${

@@ -1,6 +1,6 @@
 import api from '../api/axios';
 
-public interface BusinessConfig {
+export interface BusinessConfig {
   id?: number;
   name: string;
   nit: string;

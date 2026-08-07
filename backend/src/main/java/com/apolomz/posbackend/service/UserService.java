@@ -26,19 +26,36 @@ public class UserService {
     public UserResponse create(UserRequest request) {
 
         if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("El usuario ya existe.");
+            throw new IllegalArgumentException("El nombre de usuario '" + request.username() + "' ya está registrado.");
         }
 
-        Role role = roleRepository.findById(request.roleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado."));
+        Role role = resolveRole(request.roleId());
 
         User user = UserMapper.toEntity(request);
         user.setRole(role);
+        user.setIsActive(true);
         user.setPassword(
                 passwordEncoder.encode(request.password())
         );
 
         return UserMapper.toResponse(userRepository.save(user));
+    }
+
+    private Role resolveRole(Long roleId) {
+        if (roleId != null) {
+            var found = roleRepository.findById(roleId);
+            if (found.isPresent()) return found.get();
+        }
+
+        // Fallback buscando por nombre si el ID no coincidió
+        String defaultRoleName = (roleId != null && roleId == 1L) ? "ADMIN" : "CASHIER";
+        return roleRepository.findByName(defaultRoleName)
+                .orElseGet(() -> roleRepository.save(
+                        Role.builder()
+                                .name(defaultRoleName)
+                                .description("Rol por defecto " + defaultRoleName)
+                                .build()
+                ));
     }
 
     public List<UserResponse> findAll() {

@@ -1,4 +1,5 @@
 import api from '../api/axios';
+import type { SaleInvoiceData } from '../components/InvoiceDetailModal';
 
 export const PAYMENT_METHODS = {
   CASH: 'CASH',
@@ -23,4 +24,16 @@ export interface SaleRequest {
 export const createSale = async (saleData: SaleRequest) => {
   const response = await api.post('/sales', saleData);
   return response.data;
+};
+
+export const saleService = {
+  getAll: async (): Promise<SaleInvoiceData[]> => {
+    const response = await api.get<SaleInvoiceData[]>('/sales');
+    return response.data;
+  },
+
+  getById: async (id: number): Promise<SaleInvoiceData> => {
+    const response = await api.get<SaleInvoiceData>(`/sales/${id}`);
+    return response.data;
+  },
 };

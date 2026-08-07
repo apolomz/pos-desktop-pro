@@ -25,6 +25,7 @@ import { userService, type UserResponse } from '../services/userService';
 import { cashShiftService, type CashShift } from '../services/cashShiftService';
 import { expenseService, type Expense } from '../services/expenseService';
 import { backupService } from '../services/backupService';
+import { formatExpenseCategory, formatRole, formatShiftStatus, formatCurrency } from '../utils/formatters';
 
 export const SettingsDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'business' | 'users' | 'shifts' | 'expenses' | 'backup'>('business');
@@ -456,7 +457,7 @@ export const SettingsDashboard: React.FC = () => {
                           ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
                           : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                       }`}>
-                        {u.role}
+                        {formatRole(u.role)}
                       </span>
                     </td>
                     <td className="py-4 px-6">
@@ -663,7 +664,7 @@ export const SettingsDashboard: React.FC = () => {
                     <tr key={exp.id} className="hover:bg-slate-800/40">
                       <td className="py-3.5 px-6">
                         <span className="px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded text-xs font-semibold">
-                          {exp.category}
+                          {formatExpenseCategory(exp.category)}
                         </span>
                       </td>
                       <td className="py-3.5 px-6">{exp.description}</td>
@@ -695,15 +696,30 @@ export const SettingsDashboard: React.FC = () => {
               <Download className="w-8 h-8 text-indigo-400" />
               <div>
                 <h3 className="font-bold text-white text-sm">Exportar Copia de Seguridad</h3>
-                <p className="text-xs text-slate-400 mt-1">Descarga un archivo JSON estructurado con todos los productos, ventas y configuraciones.</p>
+                <p className="text-xs text-slate-400 mt-1">Descarga copias de seguridad en formato JSON (sistema) o CSV (abrible en Excel / Sheets).</p>
               </div>
-              <button
-                onClick={handleExportBackup}
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span>Descargar Backup JSON</span>
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={handleExportBackup}
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Descargar Backup JSON</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await backupService.exportCsvBackup();
+                    } catch (e) {
+                      alert('Error al descargar reporte CSV.');
+                    }
+                  }}
+                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-semibold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <span>Descargar Reporte CSV (Excel)</span>
+                </button>
+              </div>
             </div>
 
             {/* Importar */}

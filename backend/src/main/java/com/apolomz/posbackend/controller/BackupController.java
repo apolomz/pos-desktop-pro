@@ -25,6 +25,15 @@ public class BackupController {
                 .body(data);
     }
 
+    @GetMapping("/export/csv")
+    public ResponseEntity<byte[]> exportCsvBackup() {
+        byte[] csvBytes = backupService.exportFullCsv();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=pos_reportes_" + System.currentTimeMillis() + ".csv")
+                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+                .body(csvBytes);
+    }
+
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importBackup(@RequestBody Map<String, Object> payload) {
         Map<String, Object> response = backupService.importBackup(payload);

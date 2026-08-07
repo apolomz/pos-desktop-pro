@@ -26,4 +26,14 @@ public class SaleController {
         SaleResponseDTO response = saleService.createSale(requestDTO, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<SaleResponseDTO>> getAllSales() {
+        return ResponseEntity.ok(saleService.findAllSales());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SaleResponseDTO> getSaleById(@PathVariable Long id) {
+        return ResponseEntity.ok(saleService.findSaleById(id));
+    }
 }

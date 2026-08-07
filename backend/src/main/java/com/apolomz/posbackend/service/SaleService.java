@@ -152,6 +152,20 @@ public class SaleService {
         return mapToResponseDTO(savedSale);
     }
 
+    @Transactional(readOnly = true)
+    public List<SaleResponseDTO> findAllSales() {
+        return saleRepository.findAll().stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SaleResponseDTO findSaleById(Long id) {
+        Sale sale = saleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con ID: " + id));
+        return mapToResponseDTO(sale);
+    }
+
     private SaleResponseDTO mapToResponseDTO(Sale sale) {
 
         List<SaleDetailResponseDTO> detailDTOs =
