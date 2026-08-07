@@ -17,7 +17,8 @@ import { ProductManager } from '../components/ProductManager';
 import { CategoryManager } from '../components/CategoryManager';
 import { InventoryManager } from '../components/InventoryManager';
 import { CustomerManager } from '../components/CustomerManager';
-import { ReportsDashboard } from '../components/ReportsDashboard'; // 1. Importación del Dashboard
+import { ReportsDashboard } from '../components/ReportsDashboard';
+import { SettingsDashboard } from '../components/SettingsDashboard'; // 1. Importación del Dashboard de Configuración
 
 export type TabType =
   | 'pos'
@@ -25,7 +26,8 @@ export type TabType =
   | 'categories'
   | 'inventory'
   | 'customers'
-  | 'reports'; // 2. Agregado 'reports' al tipo
+  | 'reports'
+  | 'settings'; // 2. Agregado 'settings' al tipo
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -36,7 +38,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     if (location.pathname.startsWith('/categories')) return 'categories';
     if (location.pathname.startsWith('/inventory')) return 'inventory';
     if (location.pathname.startsWith('/customers')) return 'customers';
-    if (location.pathname.startsWith('/reports')) return 'reports'; // 3. Reconocimiento de ruta activa
+    if (location.pathname.startsWith('/reports')) return 'reports';
+    if (location.pathname.startsWith('/settings')) return 'settings'; // 3. Reconocimiento de ruta activa 'settings'
 
     return 'pos';
   };
@@ -122,10 +125,15 @@ export const AppRoutes: React.FC = () => {
             element={<CustomerManager />}
           />
 
-          {/* 4. Nueva ruta de Reportes */}
           <Route
             path="/reports"
             element={<ReportsDashboard />}
+          />
+
+          {/* 4. Nueva ruta de Configuración */}
+          <Route
+            path="/settings"
+            element={<SettingsDashboard />}
           />
         </Route>
       </Route>

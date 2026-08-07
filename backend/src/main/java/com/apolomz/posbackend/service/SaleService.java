@@ -4,6 +4,7 @@ import com.apolomz.posbackend.dto.request.SaleItemRequestDTO;
 import com.apolomz.posbackend.dto.request.SaleRequestDTO;
 import com.apolomz.posbackend.dto.response.SaleDetailResponseDTO;
 import com.apolomz.posbackend.dto.response.SaleResponseDTO;
+import com.apolomz.posbackend.exception.BadRequestException;
 import com.apolomz.posbackend.exception.ResourceNotFoundException;
 import com.apolomz.posbackend.model.Customer;
 import com.apolomz.posbackend.model.Product;
@@ -30,6 +31,7 @@ public class SaleService {
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
     private final InventoryService inventoryService;
+    private final CashShiftService cashShiftService;
 
     @Transactional
     public SaleResponseDTO createSale(
@@ -43,6 +45,10 @@ public class SaleService {
                                 "Usuario no encontrado: " + sellerUsername
                         )
                 );
+
+        if (!cashShiftService.hasOpenShift(seller.getId())) {
+            throw new BadRequestException("No hay un turno de caja abierto. Debe abrir turno de caja antes de registrar ventas.");
+        }
 
         Customer customer = null;
 

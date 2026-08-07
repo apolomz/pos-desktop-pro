@@ -82,4 +82,11 @@ public class UserService {
 
         userRepository.deleteById(id);
     }
+
+    public UserResponse toggleActiveStatus(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+        user.setIsActive(!Boolean.TRUE.equals(user.getIsActive()));
+        return UserMapper.toResponse(userRepository.save(user));
+    }
 }
