@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,4 +28,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     @Query("SELECT COUNT(s) FROM Sale s WHERE s.customer.id = :customerId")
     Long getSalesCountByCustomerId(@Param("customerId") Long customerId);
+
+    @Query("SELECT s.customer.id, s.customer.name, COUNT(s), SUM(s.total) " +
+           "FROM Sale s " +
+           "WHERE s.customer IS NOT NULL AND s.status = :status " +
+           "GROUP BY s.customer.id, s.customer.name " +
+           "ORDER BY COUNT(s) DESC")
+    List<Object[]> findFrequentCustomers(@Param("status") String status, Pageable pageable);
 }

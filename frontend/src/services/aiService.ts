@@ -6,6 +6,22 @@ export interface LowStockItem {
   stock: number;
 }
 
+export interface TopSellingProduct {
+  id: number;
+  name: string;
+  category: string;
+  quantitySold: number;
+  revenue: number;
+  stock: number;
+}
+
+export interface FrequentCustomer {
+  id: number;
+  name: string;
+  salesCount: number;
+  totalSpent: number;
+}
+
 export interface AnalyticsSummary {
   totalSalesCount: number;
   totalRevenue: number;
@@ -13,6 +29,9 @@ export interface AnalyticsSummary {
   lowStockCount: number;
   lowStockItems: LowStockItem[];
   totalCustomers: number;
+  topProducts: TopSellingProduct[];
+  frequentCustomers: FrequentCustomer[];
+  recommendations: string[];
 }
 
 export interface ChatResponse {

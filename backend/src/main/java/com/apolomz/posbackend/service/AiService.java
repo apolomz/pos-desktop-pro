@@ -2,9 +2,7 @@ package com.apolomz.posbackend.service;
 
 import com.apolomz.posbackend.dto.response.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 import java.util.*;
 
@@ -14,55 +12,11 @@ public class AiService {
     @Autowired
     private AiAnalyticsService analyticsService;
 
-    private final RestClient restClient = RestClient.create();
-
     /**
-     * Procesa la consulta usando la API Key proporcionada dinámicamente por el cliente.
+     * Procesa la consulta utilizando estrictamente el motor inteligente local offline.
      */
     public ChatResponse processChat(String userMessage, String clientGeminiApiKey) {
         Map<String, Object> metrics = analyticsService.getBusinessSummary();
-
-        // 1. Si el cliente envió su API Key de Gemini, consumimos la API de Google
-        if (clientGeminiApiKey != null && !clientGeminiApiKey.isBlank()) {
-            try {
-                String systemPrompt = analyticsService.buildSystemContextPrompt();
-                String fullPrompt = systemPrompt + "\n\nPregunta del usuario: " + userMessage;
-
-                String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="
-                        + clientGeminiApiKey.trim();
-
-                Map<String, Object> requestBody = Map.of(
-                        "contents", List.of(
-                                Map.of("parts", List.of(Map.of("text", fullPrompt)))
-                        )
-                );
-
-                Map<?, ?> response = restClient.post()
-                        .uri(url)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(requestBody)
-                        .retrieve()
-                        .body(Map.class);
-
-                if (response != null && response.containsKey("candidates")) {
-                    List<?> candidates = (List<?>) response.get("candidates");
-                    if (!candidates.isEmpty()) {
-                        Map<?, ?> firstCandidate = (Map<?, ?>) candidates.get(0);
-                        Map<?, ?> content = (Map<?, ?>) firstCandidate.get("content");
-                        List<?> parts = (List<?>) content.get("parts");
-                        Map<?, ?> firstPart = (Map<?, ?>) parts.get(0);
-                        String geminiReply = (String) firstPart.get("text");
-
-                        return new ChatResponse(geminiReply, false);
-                    }
-                }
-            } catch (Exception e) {
-                // En caso de clave inválida, sin saldo o fallo de red, conmuta a modo local
-                return generateLocalSmartResponse(userMessage, metrics, "Clave de Gemini no válida o límite excedido. Usando modo local.");
-            }
-        }
-
-        // 2. Si no hay clave, responde el motor inteligente local
         return generateLocalSmartResponse(userMessage, metrics, null);
     }
 
@@ -97,19 +51,53 @@ public class AiService {
                             "Te recomendamos revisar el módulo de Inventario y coordinar reabastecimiento con tus proveedores.",
                     lowStockCount
             ));
-        } else if (msgLower.contains("cliente") || msgLower.contains("frecuente")) {
-            reply.append(String.format(
-                    "👥 **Análisis de Clientes:**\n\n" +
-                            "Tienes un total de **%s** clientes registrados en el sistema.\n" +
-                            "💡 *Consejo:* Ofrece un descuento especial del 5%% en su próxima compra para fidelizarlos.",
-                    metrics.get("totalCustomers")
-            ));
+        } else if (msgLower.contains("vendido") || msgLower.contains("mas vendido") || msgLower.contains("más vendido") || msgLower.contains("top productos") || msgLower.contains("top ventas") || msgLower.contains("rotación") || msgLower.contains("rotacion")) {
+            List<?> topProducts = (List<?>) metrics.get("topProducts");
+            if (topProducts != null && !topProducts.isEmpty()) {
+                reply.append("🏆 **Productos más vendidos (Top Selling):**\n\n");
+                for (int i = 0; i < topProducts.size(); i++) {
+                    Map<?, ?> p = (Map<?, ?>) topProducts.get(i);
+                    reply.append(String.format("%d. **%s** - %s vendidos (Categoría: %s, Stock: %s)\n", 
+                            i + 1, p.get("name"), p.get("quantitySold"), p.get("category"), p.get("stock")));
+                }
+            } else {
+                reply.append("🏆 **Productos más vendidos:** No hay suficientes ventas registradas para calcular el top de productos.");
+            }
+        } else if (msgLower.contains("cliente") || msgLower.contains("frecuente") || msgLower.contains("mejores clientes")) {
+            List<?> frequentCustomers = (List<?>) metrics.get("frequentCustomers");
+            if (frequentCustomers != null && !frequentCustomers.isEmpty()) {
+                reply.append("👥 **Clientes más frecuentes (Top Customers):**\n\n");
+                for (int i = 0; i < frequentCustomers.size(); i++) {
+                    Map<?, ?> c = (Map<?, ?>) frequentCustomers.get(i);
+                    reply.append(String.format("%d. **%s** - %s compras registradas (Total gastado: $%s)\n", 
+                            i + 1, c.get("name"), c.get("salesCount"), c.get("totalSpent")));
+                }
+            } else {
+                reply.append(String.format(
+                        "👥 **Análisis de Clientes:**\n\n" +
+                                "Tienes un total de **%s** clientes registrados en el sistema.\n" +
+                                "Aún no hay compras registradas para calcular el top de clientes más frecuentes.",
+                        metrics.get("totalCustomers")
+                ));
+            }
+        } else if (msgLower.contains("sugerencia") || msgLower.contains("recomendación") || msgLower.contains("recomendacion") || msgLower.contains("consejo") || msgLower.contains("tips")) {
+            List<?> recommendations = (List<?>) metrics.get("recommendations");
+            if (recommendations != null && !recommendations.isEmpty()) {
+                reply.append("💡 **Recomendaciones de Negocio:**\n\n");
+                for (Object rec : recommendations) {
+                    reply.append(String.format("- %s\n", rec));
+                }
+            } else {
+                reply.append("💡 **Recomendaciones de Negocio:**\n\n" +
+                        "- Revisa regularmente los niveles de stock para evitar desabasto.\n" +
+                        "- Lanza promociones los días de menor movimiento para incentivar ventas.");
+            }
         } else {
             reply.append(String.format(
                     "🤖 **Asistente POS:**\n\n" +
                             "Puedo ayudarte a analizar tus ventas, revisar alertas de inventario o darte consejos de negocio.\n" +
                             "Actualmente tienes **%d** ventas registradas por un valor de **$%s**.\n\n" +
-                            "Prueba preguntándome: *'¿Cómo van las ventas?'*, *'¿Qué productos tienen bajo stock?'* o *'Resumen de clientes'*.",
+                            "Prueba preguntándome: *'¿Cómo van las ventas?'*, *'¿Qué productos tienen bajo stock?'*, *'¿Cuáles son los productos más vendidos?'*, *'¿Quiénes son mis clientes frecuentes?'* o *'¿Qué recomendaciones tienes?'*.",
                     totalSales, totalRevenue
             ));
         }

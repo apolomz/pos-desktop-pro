@@ -10,6 +10,9 @@ import {
   DollarSign,
   Key,
   RefreshCw,
+  Trophy,
+  Lightbulb,
+  Crown,
 } from 'lucide-react';
 import { aiService, type AnalyticsSummary, type ChatResponse } from '../services/aiService';
 
@@ -179,110 +182,223 @@ export const AiAssistant: React.FC = () => {
         </div>
       </div>
 
-      {/* Chat Container */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[520px] overflow-hidden">
-        {/* Chat Messages */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-4">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex gap-3 ${
-                msg.sender === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              {msg.sender === 'bot' && (
-                <div className="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center flex-shrink-0 mt-1">
-                  <Bot className="w-4 h-4" />
-                </div>
-              )}
+      {/* Chat & Insights Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chat Container */}
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[560px] overflow-hidden shadow-xl">
+          {/* Chat Messages */}
+          <div className="flex-1 p-4 overflow-y-auto scrollbar-thin space-y-4">
+            {messages.map((msg, idx) => (
               <div
-                className={`max-w-[80%] rounded-2xl p-4 text-sm leading-relaxed whitespace-pre-line ${
-                  msg.sender === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-none'
-                    : 'bg-slate-950 border border-slate-800 text-slate-200 rounded-bl-none'
+                key={idx}
+                className={`flex gap-3 ${
+                  msg.sender === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                {msg.text}
+                {msg.sender === 'bot' && (
+                  <div className="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                )}
                 <div
-                  className={`mt-2 flex items-center justify-between gap-2 text-[10px] ${
-                    msg.sender === 'user' ? 'text-indigo-200' : 'text-slate-500'
+                  className={`max-w-[80%] rounded-2xl p-4 text-sm leading-relaxed whitespace-pre-line ${
+                    msg.sender === 'user'
+                      ? 'bg-indigo-600 text-white rounded-br-none'
+                      : 'bg-slate-950 border border-slate-800 text-slate-200 rounded-bl-none'
                   }`}
                 >
-                  <span>{msg.timestamp}</span>
-                  {msg.offlineMode && (
-                    <span className="bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">
-                      Modo Local
-                    </span>
-                  )}
+                  {msg.text}
+                  <div
+                    className={`mt-2 flex items-center justify-between gap-2 text-[10px] ${
+                      msg.sender === 'user' ? 'text-indigo-200' : 'text-slate-500'
+                    }`}
+                  >
+                    <span>{msg.timestamp}</span>
+                    {msg.offlineMode && (
+                      <span className="bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">
+                        Modo Local
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {msg.sender === 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center flex-shrink-0 mt-1">
+                    <User className="w-4 h-4" />
+                  </div>
+                )}
+              </div>
+            ))}
+            {sending && (
+              <div className="flex gap-3 justify-start">
+                <div className="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                  <Bot className="w-4 h-4 animate-pulse" />
+                </div>
+                <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl rounded-bl-none text-xs text-slate-400 flex items-center gap-2">
+                  <RefreshCw className="w-3 h-3 animate-spin text-indigo-400" />
+                  Analizando métricas del negocio...
                 </div>
               </div>
-              {msg.sender === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center flex-shrink-0 mt-1">
-                  <User className="w-4 h-4" />
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Quick Prompts */}
+          <div className="px-4 py-2 bg-slate-950 border-t border-slate-800/60 flex items-center gap-2 overflow-x-auto text-xs">
+            <span className="text-slate-500 flex-shrink-0 font-medium">Sugerencias:</span>
+            <button
+              onClick={() => handleSend('¿Cómo van las ventas del negocio?')}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
+            >
+              📊 ¿Cómo van las ventas?
+            </button>
+            <button
+              onClick={() => handleSend('¿Qué productos tienen bajo stock?')}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
+            >
+              ⚠️ Productos con bajo stock
+            </button>
+            <button
+              onClick={() => handleSend('¿Cuáles son los productos más vendidos?')}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
+            >
+              🏆 Productos más vendidos
+            </button>
+            <button
+              onClick={() => handleSend('¿Quiénes son mis clientes frecuentes?')}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
+            >
+              👥 Clientes frecuentes
+            </button>
+            <button
+              onClick={() => handleSend('¿Qué recomendaciones tienes para mi negocio?')}
+              className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
+            >
+              💡 Recomendaciones
+            </button>
+          </div>
+
+          {/* Input Bar */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
+          >
+            <input
+              type="text"
+              placeholder="Escribe tu consulta o pide un diagnóstico..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || sending}
+              className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white p-2.5 rounded-xl transition"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
+
+        {/* Panel de Insights de IA */}
+        <div className="lg:col-span-1 space-y-6 max-h-[560px] overflow-y-auto scrollbar-none pr-1">
+          {/* Tarjeta de Recomendaciones */}
+          <div className="bg-gradient-to-br from-indigo-950/40 to-slate-900/90 border border-slate-800/80 p-5 rounded-2xl shadow-lg space-y-4">
+            <div className="flex items-center gap-2.5 text-indigo-400">
+              <Lightbulb className="w-5 h-5 animate-pulse" />
+              <h2 className="font-bold text-xs uppercase tracking-wider text-slate-200">Recomendaciones IA</h2>
+            </div>
+            <div className="space-y-3">
+              {loadingMetrics ? (
+                <div className="space-y-2">
+                  <div className="h-10 bg-slate-800/50 rounded-xl animate-pulse" />
+                  <div className="h-10 bg-slate-800/50 rounded-xl animate-pulse" />
                 </div>
+              ) : metrics?.recommendations && metrics.recommendations.length > 0 ? (
+                metrics.recommendations.map((rec, i) => (
+                  <div key={i} className="bg-slate-950/60 border border-slate-800/50 p-3.5 rounded-xl text-xs leading-relaxed text-slate-300 hover:border-indigo-500/30 transition duration-300">
+                    {rec}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-500 italic">No hay sugerencias disponibles en este momento.</p>
               )}
             </div>
-          ))}
-          {sending && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center flex-shrink-0">
-                <Bot className="w-4 h-4 animate-pulse" />
-              </div>
-              <div className="bg-slate-950 border border-slate-800 p-3 rounded-2xl rounded-bl-none text-xs text-slate-400 flex items-center gap-2">
-                <RefreshCw className="w-3 h-3 animate-spin text-indigo-400" />
-                Analizando métricas del negocio...
-              </div>
+          </div>
+
+          {/* Tarjeta de Productos Más Vendidos */}
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg space-y-4">
+            <div className="flex items-center gap-2.5 text-amber-400">
+              <Trophy className="w-5 h-5" />
+              <h2 className="font-bold text-xs uppercase tracking-wider text-slate-200">Productos Más Vendidos</h2>
             </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+            <div className="space-y-2.5">
+              {loadingMetrics ? (
+                <div className="space-y-2">
+                  <div className="h-8 bg-slate-800/50 rounded-xl animate-pulse" />
+                  <div className="h-8 bg-slate-800/50 rounded-xl animate-pulse" />
+                </div>
+              ) : metrics?.topProducts && metrics.topProducts.length > 0 ? (
+                metrics.topProducts.map((prod, i) => (
+                  <div key={prod.id} className="flex items-center justify-between p-2.5 bg-slate-950/40 hover:bg-slate-950/80 border border-slate-800/60 rounded-xl transition duration-300">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs font-bold shrink-0">
+                        {i + 1}
+                      </div>
+                      <div className="truncate">
+                        <p className="text-xs font-semibold text-slate-200 truncate">{prod.name}</p>
+                        <p className="text-[10px] text-slate-500 truncate">{prod.category}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-bold text-slate-300">{prod.quantitySold} u.</p>
+                      <p className="text-[10px] text-emerald-400 font-medium">${prod.revenue}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-500 italic">No hay registros de ventas suficientes.</p>
+              )}
+            </div>
+          </div>
 
-        {/* Quick Prompts */}
-        <div className="px-4 py-2 bg-slate-950 border-t border-slate-800/60 flex items-center gap-2 overflow-x-auto text-xs">
-          <span className="text-slate-500 flex-shrink-0 font-medium">Sugerencias:</span>
-          <button
-            onClick={() => handleSend('¿Cómo van las ventas del negocio?')}
-            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
-          >
-            📊 ¿Cómo van las ventas?
-          </button>
-          <button
-            onClick={() => handleSend('¿Qué productos tienen bajo stock?')}
-            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
-          >
-            ⚠️ Productos con bajo stock
-          </button>
-          <button
-            onClick={() => handleSend('Dame sugerencias para fidelizar a mis clientes')}
-            className="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 px-3 py-1 rounded-full whitespace-nowrap transition"
-          >
-            💡 Consejos de clientes
-          </button>
+          {/* Tarjeta de Clientes Frecuentes */}
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg space-y-4">
+            <div className="flex items-center gap-2.5 text-indigo-400">
+              <Crown className="w-5 h-5 text-indigo-400" />
+              <h2 className="font-bold text-xs uppercase tracking-wider text-slate-200">Clientes Frecuentes</h2>
+            </div>
+            <div className="space-y-2.5">
+              {loadingMetrics ? (
+                <div className="space-y-2">
+                  <div className="h-8 bg-slate-800/50 rounded-xl animate-pulse" />
+                  <div className="h-8 bg-slate-800/50 rounded-xl animate-pulse" />
+                </div>
+              ) : metrics?.frequentCustomers && metrics.frequentCustomers.length > 0 ? (
+                metrics.frequentCustomers.map((cust, i) => (
+                  <div key={cust.id} className="flex items-center justify-between p-2.5 bg-slate-950/40 hover:bg-slate-950/80 border border-slate-800/60 rounded-xl transition duration-300">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-bold shrink-0">
+                        {i + 1}
+                      </div>
+                      <div className="truncate">
+                        <p className="text-xs font-semibold text-slate-200 truncate">{cust.name}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-bold text-slate-300">{cust.salesCount} compras</p>
+                      <p className="text-[10px] text-indigo-400 font-medium">Total: ${cust.totalSpent}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-500 italic">No hay clientes con compras registradas.</p>
+              )}
+            </div>
+          </div>
         </div>
-
-        {/* Input Bar */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
-        >
-          <input
-            type="text"
-            placeholder="Escribe tu consulta o pide un diagnóstico..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || sending}
-            className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white p-2.5 rounded-xl transition"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
       </div>
 
       {/* Modal API Key */}
