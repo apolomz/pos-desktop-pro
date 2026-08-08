@@ -18,7 +18,8 @@ import { CategoryManager } from '../components/CategoryManager';
 import { InventoryManager } from '../components/InventoryManager';
 import { CustomerManager } from '../components/CustomerManager';
 import { ReportsDashboard } from '../components/ReportsDashboard';
-import { SettingsDashboard } from '../components/SettingsDashboard'; // 1. Importación del Dashboard de Configuración
+import { SettingsDashboard } from '../components/SettingsDashboard';
+import { AiAssistant } from '../pages/AiAssistant'; // Importación del Asistente IA
 
 export type TabType =
   | 'pos'
@@ -27,7 +28,8 @@ export type TabType =
   | 'inventory'
   | 'customers'
   | 'reports'
-  | 'settings'; // 2. Agregado 'settings' al tipo
+  | 'ai-assistant'
+  | 'settings';
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -39,7 +41,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
     if (location.pathname.startsWith('/inventory')) return 'inventory';
     if (location.pathname.startsWith('/customers')) return 'customers';
     if (location.pathname.startsWith('/reports')) return 'reports';
-    if (location.pathname.startsWith('/settings')) return 'settings'; // 3. Reconocimiento de ruta activa 'settings'
+    if (location.pathname.startsWith('/ai-assistant')) return 'ai-assistant'; // Reconocimiento de ruta activa 'ai-assistant'
+    if (location.pathname.startsWith('/settings')) return 'settings';
 
     return 'pos';
   };
@@ -130,7 +133,12 @@ export const AppRoutes: React.FC = () => {
             element={<ReportsDashboard />}
           />
 
-          {/* 4. Nueva ruta de Configuración */}
+          {/* Ruta del Asistente Virtual */}
+          <Route
+            path="/ai-assistant"
+            element={<AiAssistant />}
+          />
+
           <Route
             path="/settings"
             element={<SettingsDashboard />}

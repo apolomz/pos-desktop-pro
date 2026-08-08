@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   User,
+  Sparkles,
 } from 'lucide-react';
 import { formatRole } from '../utils/formatters';
 
@@ -21,6 +22,7 @@ interface LayoutProps {
     | 'inventory'
     | 'customers'
     | 'reports'
+    | 'ai-assistant'
     | 'settings';
 
   setActiveTab: (
@@ -31,6 +33,7 @@ interface LayoutProps {
       | 'inventory'
       | 'customers'
       | 'reports'
+      | 'ai-assistant'
       | 'settings'
   ) => void;
 
@@ -83,9 +86,13 @@ export const Layout: React.FC<LayoutProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-white truncate">{fullName}</p>
-              <span className={`inline-block px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider ${
-                isCashier ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
-              }`}>
+              <span
+                className={`inline-block px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider ${
+                  isCashier
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                }`}
+              >
                 {formatRole(role)}
               </span>
             </div>
@@ -134,7 +141,7 @@ export const Layout: React.FC<LayoutProps> = ({
               </button>
             )}
 
-            {/* Inventario (Visible para todos, pero lectura para cajero) */}
+            {/* Inventario */}
             <button
               onClick={() => setActiveTab('inventory')}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
@@ -174,6 +181,21 @@ export const Layout: React.FC<LayoutProps> = ({
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Reportes</span>
+              </button>
+            )}
+
+            {/* Asistente IA (Solo Admin) */}
+            {!isCashier && (
+              <button
+                onClick={() => setActiveTab('ai-assistant')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'ai-assistant'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <span>Asistente IA</span>
               </button>
             )}
 
